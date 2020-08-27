@@ -1,0 +1,8 @@
+grab_*.py
+.vscode/
+.mypy_cache/
+__pycache__/
+chrome_profiles/
+*.py[co]
+
+.DS_Store
