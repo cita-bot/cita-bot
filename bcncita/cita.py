@@ -24,6 +24,7 @@ __all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType"]
 CAPTCHA_TIMEOUT = 180
 
 CYCLES = 100
+REFRESH_PAGE_CYCLES = 12
 
 DELAY = 6  # timeout for page load
 
@@ -125,6 +126,7 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
 
     success = False
     for i in range(cycles):
+        result = False
         try:
             result = cycle_cita(driver, context)
         except KeyboardInterrupt:
@@ -194,17 +196,33 @@ def toma_hellas_step2(driver: webdriver, context: CustomerProfile):
     btn.send_keys(Keys.ENTER)
 
     time.sleep(0.5)
+    return test_hay_cita_disponible_with_refresh(driver)
 
+
+def test_hay_cita_disponible_with_refresh(driver: webdriver) -> Optional[bool]:
     resp_text = driver.find_element_by_tag_name("body").text
 
-    if "En este momento no hay citas disponibles." in resp_text:
-        print(f"Cita attempt at {datetime.datetime.now()}")
-        return None
-    else:
+    if "En este momento no hay citas disponibles" not in resp_text:
         print(f"Cita attempt at {datetime.datetime.now()} hit! :)")
+        return True
 
-    os.system("say STEP TWO ATTEMPT")
-    return True
+    for i in range(REFRESH_PAGE_CYCLES):
+        time.sleep(5)
+        driver.refresh()
+        time.sleep(0.5)
+
+        resp_text = driver.find_element_by_tag_name("body").text
+
+        if "En este momento no hay citas disponibles" in resp_text:
+            print(f"Cita page refresh attempt at {datetime.datetime.now()}")
+        elif "seleccione la provincia donde desea solicitar " in resp_text:
+            print(f"Failed step1 attempt after {i} refreshment at {datetime.datetime.now()}")
+            return None
+        else:
+            print(f"Cita attempt at {datetime.datetime.now()} hit! :)")
+            return True
+
+    return None
 
 
 def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
@@ -242,15 +260,7 @@ def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
 
     time.sleep(0.5)
 
-    resp_text = driver.find_element_by_tag_name("body").text
-
-    if "En este momento no hay citas disponibles." in resp_text:
-        print(f"Cita attempt at {datetime.datetime.now()}")
-        return None
-    else:
-        print(f"Cita attempt at {datetime.datetime.now()} hit! :)")
-
-    return True
+    return test_hay_cita_disponible_with_refresh(driver)
 
 
 def process_captcha(driver: webdriver, context: CustomerProfile):
