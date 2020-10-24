@@ -37,6 +37,7 @@ class DocType(str, Enum):
 class OperationType(str, Enum):
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
+    SOLICITUD = "4"  # EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
 
 
 class Office(str, Enum):
@@ -72,6 +73,7 @@ class CustomerProfile:
     city: str = "Barcelona"
     operation_code: OperationType = OperationType.TOMA_HUELLAS
     country: str = "RUSIA"
+    year_of_birth: Optional[str] = None
     card_expire_date: Optional[str] = None  # "dd/mm/yyyy"
     offices: Optional[list] = field(default_factory=list)
 
@@ -247,6 +249,31 @@ def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
     return True
 
 
+def solicitud_step2(driver: webdriver, context: CustomerProfile):
+    # Data form:
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
+
+    # Select doc type
+    if context.doc_type == DocType.PASSPORT:
+        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+    elif context.doc_type == DocType.NIE:
+        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+
+    # Enter doc number and name
+    element = driver.find_element_by_id("txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+
+    success = process_captcha(driver, context)
+    if not success:
+        return
+
+    return True
+
+
 def wait_exact_time(driver: webdriver, context: CustomerProfile):
     if context.wait_exact_time:
         WebDriverWait(driver, 1200).until(
@@ -376,6 +403,8 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         success = toma_huellas_step2(driver, context)
     elif context.operation_code == OperationType.RECOGIDA_DE_TARJETA:
         success = recogida_de_tarjeta_step2(driver, context)
+    elif context.operation_code == OperationType.SOLICITUD:
+        success = solicitud_step2(driver, context)
 
     if not success:
         return None

@@ -36,6 +36,9 @@ Examples
 
 * `example2.py` — Toma de huellas
 
+* `example3.py` — Solicitud de autorizaciones
+
+
 Options
 --------
 
@@ -60,6 +63,7 @@ class CustomerProfile:
     doc_value: str  # Passport? "123123123"; Nie? "Y1111111M"
     name: str
     country: str = "RUSIA"
+    year_of_birth: Optional[str] = None
     card_expire_date: Optional[str] = None  # "dd/mm/yyyy"
     phone: str
     email: str
@@ -80,13 +84,15 @@ class CustomerProfile:
 
 * `city` — City name (Barcelona by default). Copypaste using Chrome DevTools from the Select options, please.
 
-* `operation_code` — `OperationType.TOMA_HUELLAS` or `OperationType.RECOGIDA_DE_TARJETA`
+* `operation_code` — `OperationType.TOMA_HUELLAS` or `OperationType.RECOGIDA_DE_TARJETA` or `OperationType.SOLICITUD`
 
 * `doc_type` — `DocType.NIE` or `DocType.PASSPORT`
 
 * `doc_value` — Document number, no spaces
 
 * `name` — First and Last Name
+
+* `year_of_birth` — Year of birth, like "YYYY"
 
 * `country` — Country (RUSIA by default). The same copypaste, please.
 
@@ -113,6 +119,6 @@ Try to uncomment these lines in the run script.
 How to fix dependencies
 ------------------------
 
-1. For Windows, download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH named `say.exe` (see step 3 of Installation)
+1. For Windows, download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH named `say.exe` (see step 4 of Installation)
 
 2. Chrome → Firefox — it's possible as well (tune code, paths, browser run arguments, plugin)
