@@ -19,6 +19,8 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
 from telegram.ext import CommandHandler, Updater
 
+from .speaker import new_speaker
+
 __all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType", "Office"]
 
 
@@ -28,6 +30,8 @@ CYCLES = 144
 REFRESH_PAGE_CYCLES = 12
 
 DELAY = 30  # timeout for page load
+
+speaker = new_speaker()
 
 
 class DocType(str, Enum):
@@ -190,7 +194,7 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
 
     if not success:
         logging.error("FAIL")
-        os.system("say 'FAIL'")
+        speaker.say("FAIL")
         driver.quit()
 
 
@@ -318,7 +322,7 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
 
 def select_office(driver: webdriver, context: CustomerProfile):
     if not context.auto_office:
-        os.system("say 'MAKE A CHOICE'")
+        speaker.say("MAKE A CHOICE")
         logging.info("Press Any Key")
         input()
         return True
@@ -602,7 +606,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             context.updater.start_polling(poll_interval=1.0)
 
             for i in range(5):
-                os.system("say ALARM")
+                speaker.say("ALARM")
             # Waiting for response 5 minutes
             time.sleep(360)
             threading.Thread(target=shutdown).start()
@@ -617,7 +621,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             return None
         else:
             for i in range(5):
-                os.system("say ALARM")
+                speaker.say("ALARM")
             logging.info("Press Any button to CLOSE browser")
             input()
 

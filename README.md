@@ -119,8 +119,6 @@ Try to uncomment these lines in the run script.
 How to fix dependencies
 ------------------------
 
-1. For Windows, download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH named `say.exe` (see step 4 of Installation)
-
-2. For Linux, create your own `say` with `echo "$1" | espeak 2>/dev/null`
+1. For Windows, download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH (see step 4 of Installation)
 
 3. Chrome → Firefox — it's possible as well (tune code, paths, browser run arguments, plugin)
