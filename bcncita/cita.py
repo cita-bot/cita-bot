@@ -25,6 +25,7 @@ __all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType", "Office"]
 CAPTCHA_TIMEOUT = 300
 
 CYCLES = 144
+REFRESH_PAGE_CYCLES = 12
 
 DELAY = 30  # timeout for page load
 
@@ -426,7 +427,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
     btn = driver.find_element_by_id("btnEnviar")
     btn.send_keys(Keys.ENTER)
 
-    while True:
+    for i in range(REFRESH_PAGE_CYCLES):
         try:
             WebDriverWait(driver, DELAY).until(
                 EC.presence_of_element_located((By.TAG_NAME, "body"))
@@ -452,7 +453,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
 
             res = select_office(driver, context)
             if res is None:
-                time.sleep(1)
+                time.sleep(5)
                 driver.refresh()
                 continue
 
@@ -460,7 +461,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
             btn.send_keys(Keys.ENTER)
             break
         elif "En este momento no hay citas disponibles" in resp_text:
-            time.sleep(1)
+            time.sleep(5)
             driver.refresh()
             continue
         else:
