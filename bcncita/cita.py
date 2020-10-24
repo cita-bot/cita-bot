@@ -412,7 +412,11 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         for i in range(10):
             os.system("say ALARM")
         # Wait the hell for my reaction!
-        print("Press Any button to CLOSE browser")
-        input()
+        print("Enter CLOSE ad press ENTER to close the browser")
+
+        while True:
+            text = input()
+            if text.lower() == "close":
+                break
 
         return True
