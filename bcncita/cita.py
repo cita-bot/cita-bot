@@ -132,7 +132,8 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
             raise
         except TimeoutException:
             print("Timeout exception")
-        except Exception:
+        except Exception as e:
+            print(e)
             os.system("say SOMETHING BROKEN, press enter or bye")
             print("SMTH BROKEN, press enter")
             input()
@@ -165,12 +166,6 @@ def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
     select = Select(driver.find_element_by_id("txtPaisNac"))
     select.select_by_visible_text(context.country)
 
-    # Select doc type
-    if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").click()
-    elif context.doc_type == DocType.NIE:
-        driver.find_element_by_id("rdbTipoDocNie").click()
-
     # Enter doc number and name
     element = driver.find_element_by_id("txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
@@ -178,6 +173,14 @@ def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
     if context.card_expire_date:
         element = driver.find_element_by_id("txtFecha")
         element.send_keys(context.card_expire_date)
+
+    # Select doc type
+    if context.doc_type == DocType.PASSPORT:
+        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.ARROW_RIGHT)
+        # Doesn't work well if hidden / zoomed out, FYI
+        # driver.find_element_by_id("rdbTipoDocPas").click()
+    elif context.doc_type == DocType.NIE:
+        driver.find_element_by_id("rdbTipoDocNie").click()
 
     success = process_captcha(driver, context)
     if not success:
