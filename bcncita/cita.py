@@ -30,9 +30,6 @@ DELAY = 6  # timeout for page load
 
 # SLEEP_PERIOD = 60  # every minute
 
-CHROME_DRIVER_PATH = "/usr/local/bin/chromedriver"
-
-
 class DocType(str, Enum):
     PASSPORT = "passport"
     NIE = "nie"
@@ -59,7 +56,9 @@ class CustomerProfile:
     card_expire_date: Optional[str] = None  # "dd/mm/yyyy"
     auto_captcha: bool = True
     auto_pd: bool = True
+    chrome_driver_path: str = None
     selected_pd: Optional[str] = None
+    wait_exact_time: Optional[list] = None # [[minute, second]]
 
     anticaptcha_plugin_path: Optional[str] = None
     api_key: Optional[str] = None
@@ -101,7 +100,7 @@ def init_wedriver(context):
 
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option('useAutomationExtension', False)
-    browser = webdriver.Chrome(CHROME_DRIVER_PATH, options=options)
+    browser = webdriver.Chrome(context.chrome_driver_path, options=options)
 
     browser.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
     browser.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": ua})
@@ -150,7 +149,7 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
         driver.quit()
 
 
-def toma_hellas_step2(driver: webdriver, context: CustomerProfile):
+def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
     # 4. Data form:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtFecha")))
@@ -190,6 +189,12 @@ def toma_hellas_step2(driver: webdriver, context: CustomerProfile):
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "btnEnviar")))
     except TimeoutException:
         print("Timed out waiting for page to load")
+        return None
+
+    try:
+        wait_exact_time(driver, context)
+    except TimeoutException:
+        print("Timed out waiting for exact time")
         return None
 
     btn = driver.find_element_by_id("btnEnviar")
@@ -255,12 +260,25 @@ def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
         print("Timed out waiting for page to load")
         return None
 
+    try:
+        wait_exact_time(driver, context)
+    except TimeoutException:
+        print("Timed out waiting for exact time")
+        return None
+
     btn = driver.find_element_by_id("btnEnviar")
     btn.send_keys(Keys.ENTER)
 
     time.sleep(0.5)
 
     return test_hay_cita_disponible_with_refresh(driver)
+
+
+def wait_exact_time(driver: webdriver, context: CustomerProfile):
+    if context.wait_exact_time:
+        WebDriverWait(driver, 1200).until(
+            lambda _x: [datetime.datetime.now().minute, datetime.datetime.now().second] in context.wait_exact_time
+        )
 
 
 def process_captcha(driver: webdriver, context: CustomerProfile):
@@ -288,7 +306,7 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
             print("Timed out waiting for page to load after captcha")
 
         if i == 3:
-            # Failed to get catptcha
+            # Failed to get captcha
             print("Failed on success captcha")
             return None
     return True
@@ -331,7 +349,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
 
     success = False
     if context.operation_code == OperationType.TOMA_HUELLAS:
-        success = toma_hellas_step2(driver, context)
+        success = toma_huellas_step2(driver, context)
     elif context.operation_code == OperationType.RECOGIDA_DE_TARJETA:
         success = recogida_de_tarjeta_step2(driver, context)
 
