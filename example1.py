@@ -20,7 +20,6 @@ if __name__ == "__main__":
         #     [30, 0],
         #     [45, 0],
         # ],
-
         # city="Tarragona",
         operation_code=OperationType.RECOGIDA_DE_TARJETA,
         doc_type=DocType.NIE,  # DocType.NIE or DocType.PASSPORT
@@ -28,13 +27,10 @@ if __name__ == "__main__":
         name="BORIS JOHNSON",  # Your Name
         phone="600000000",  # Phone number (use this format, please)
         email="myemail@here.com",  # Email
-
         # Offices in order of preference
         # This selects specified offices one by one or a random one if not found.
         # For recogida only the first specified office will be attempted or none
-        offices=[
-            Office.BARCELONA_MALLORCA
-        ],
+        offices=[Office.BARCELONA_MALLORCA],
     )
     try_cita(context=customer, cycles=100)  # Try 100 times
 

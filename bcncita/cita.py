@@ -158,14 +158,16 @@ def init_chrome(context: CustomerProfile):
 
     browser = webdriver.Chrome(context.chrome_driver_path, options=options)
     browser.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    browser.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": ua})
+    browser.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": ua})
 
     return browser
 
 
 def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     driver = init_wedriver(context)
-    logging.basicConfig(format="%(asctime)s - %(message)s", level=logging.INFO, **context.log_settings)
+    logging.basicConfig(
+        format="%(asctime)s - %(message)s", level=logging.INFO, **context.log_settings
+    )
     context.updater = Updater(token=context.telegram_token, use_context=True)
     success = False
     result = False
@@ -277,7 +279,8 @@ def solicitud_step2(driver: webdriver, context: CustomerProfile):
 def wait_exact_time(driver: webdriver, context: CustomerProfile):
     if context.wait_exact_time:
         WebDriverWait(driver, 1200).until(
-            lambda _x: [datetime.datetime.now().minute, datetime.datetime.now().second] in context.wait_exact_time
+            lambda _x: [datetime.datetime.now().minute, datetime.datetime.now().second]
+            in context.wait_exact_time
         )
 
 
@@ -322,7 +325,9 @@ def select_office(driver: webdriver, context: CustomerProfile):
         el = driver.find_element_by_id("idSede")
         select = Select(el)
         if context.save_artifacts:
-            offices_path = os.path.join(os.getcwd(), f"offices-{datetime.datetime.now()}.html".replace(":", "-"))
+            offices_path = os.path.join(
+                os.getcwd(), f"offices-{datetime.datetime.now()}.html".replace(":", "-")
+            )
             with open(offices_path, "w") as f:
                 f.write(el.get_attribute("innerHTML"))
 
@@ -360,7 +365,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
                 continue
             break
         context.first_load = False
-        session_id = driver.get_cookie('JSESSIONID').get('value')
+        session_id = driver.get_cookie("JSESSIONID").get("value")
         logging.info(session_id)
     else:
         driver.get("https://sede.administracionespublicas.gob.es/icpplus/index.html")
@@ -375,7 +380,9 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
 
         # 2. Tramite selection:
         try:
-            WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "tramiteGrupo[1]")))
+            WebDriverWait(driver, DELAY).until(
+                EC.presence_of_element_located((By.ID, "tramiteGrupo[1]"))
+            )
         except TimeoutException:
             logging.error("Timed out waiting for tramite to load")
             return None
@@ -421,7 +428,9 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
 
     while True:
         try:
-            WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+            WebDriverWait(driver, DELAY).until(
+                EC.presence_of_element_located((By.TAG_NAME, "body"))
+            )
         except TimeoutException:
             logging.error("Timed out waiting for body to load")
             return None
@@ -434,7 +443,9 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
             # 6. Office selection:
             time.sleep(0.3)
             try:
-                WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "btnSiguiente")))
+                WebDriverWait(driver, DELAY).until(
+                    EC.presence_of_element_located((By.ID, "btnSiguiente"))
+                )
             except TimeoutException:
                 logging.error("Timed out waiting for offices to load")
                 return None
@@ -495,7 +506,9 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             driver.save_screenshot(f"citas-{datetime.datetime.now()}.png".replace(":", "-"))
 
         try:
-            driver.find_elements_by_css_selector("input[type='radio'][name='rdbCita']")[0].send_keys(Keys.SPACE)
+            driver.find_elements_by_css_selector("input[type='radio'][name='rdbCita']")[
+                0
+            ].send_keys(Keys.SPACE)
         except Exception as e:
             logging.error(e)
             pass
@@ -539,7 +552,9 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                 btn.send_keys(Keys.ENTER)
 
                 try:
-                    WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                    WebDriverWait(driver, DELAY).until(
+                        EC.presence_of_element_located((By.TAG_NAME, "body"))
+                    )
                 except TimeoutException:
                     logging.info("Timed out waiting for body to load")
                     return None
@@ -555,7 +570,11 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                     if context.save_artifacts:
                         image_name = f"CONFIRMED-CITA-{ctime}.png".replace(":", "-")
                         driver.save_screenshot(image_name)
-                        ctx.bot.send_photo(chat_id=update.effective_chat.id, photo=open(os.path.join(os.getcwd(), image_name), 'rb'), caption=caption)
+                        ctx.bot.send_photo(
+                            chat_id=update.effective_chat.id,
+                            photo=open(os.path.join(os.getcwd(), image_name), "rb"),
+                            caption=caption,
+                        )
                         btn = driver.find_element_by_id("btnImprimir")
                         btn.send_keys(Keys.ENTER)
                     else:
@@ -564,14 +583,21 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                     threading.Thread(target=shutdown).start()
                     return True
                 elif "Lo sentimos, el código introducido no es correcto" in resp_text:
-                    ctx.bot.send_message(chat_id=update.effective_chat.id, text="Incorrect, please try again")
+                    ctx.bot.send_message(
+                        chat_id=update.effective_chat.id, text="Incorrect, please try again"
+                    )
                 else:
                     error_name = f"error-{ctime}.png".replace(":", "-")
                     driver.save_screenshot(error_name)
-                    ctx.bot.send_photo(chat_id=update.effective_chat.id, photo=open(os.path.join(os.getcwd(), error_name), 'rb'))
-                    ctx.bot.send_message(chat_id=update.effective_chat.id, text="Something went wrong")
+                    ctx.bot.send_photo(
+                        chat_id=update.effective_chat.id,
+                        photo=open(os.path.join(os.getcwd(), error_name), "rb"),
+                    )
+                    ctx.bot.send_message(
+                        chat_id=update.effective_chat.id, text="Something went wrong"
+                    )
 
-            dispatcher.add_handler(CommandHandler('code', code_received, pass_args=True))
+            dispatcher.add_handler(CommandHandler("code", code_received, pass_args=True))
             context.updater.start_polling(poll_interval=1.0)
 
             for i in range(5):
@@ -580,7 +606,9 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             time.sleep(360)
             threading.Thread(target=shutdown).start()
             if context.save_artifacts:
-                driver.save_screenshot(f"FINAL-SCREEN-{datetime.datetime.now()}.png".replace(":", "-"))
+                driver.save_screenshot(
+                    f"FINAL-SCREEN-{datetime.datetime.now()}.png".replace(":", "-")
+                )
 
             if context.bot_result:
                 driver.quit()
@@ -595,5 +623,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
     else:
         logging.info("Cita attempt -> missed confirmation :(")
         if context.save_artifacts:
-            driver.save_screenshot(f"failed-confirmation-{datetime.datetime.now()}.png".replace(":", "-"))
+            driver.save_screenshot(
+                f"failed-confirmation-{datetime.datetime.now()}.png".replace(":", "-")
+            )
         return None

@@ -20,7 +20,6 @@ if __name__ == "__main__":
         #     [30, 0],
         #     [45, 0],
         # ],
-
         # city="Tarragona",
         operation_code=OperationType.SOLICITUD,
         doc_type=DocType.NIE,
