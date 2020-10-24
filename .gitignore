@@ -2,6 +2,7 @@ grab_*.py
 .vscode/
 .mypy_cache/
 __pycache__/
+examples/
 chrome_profiles/
 *.py[co]
 
