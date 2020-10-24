@@ -14,7 +14,7 @@ Installation TL;DR
 
 1. Install Python 3.8: https://www.python.org/downloads/release/python-385/
 
-2. `pip install python-telegram-bot`
+2. `pip install -r requirements.txt`
 
 3. Install Google Chrome.
 
