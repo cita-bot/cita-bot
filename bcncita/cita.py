@@ -1,22 +1,20 @@
-import json
-import time
 import datetime
+import json
 import os
+import time
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
 
 # from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-
-from dataclasses import dataclass
-
 
 __all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType"]
 
@@ -29,6 +27,7 @@ REFRESH_PAGE_CYCLES = 12
 DELAY = 6  # timeout for page load
 
 # SLEEP_PERIOD = 60  # every minute
+
 
 class DocType(str, Enum):
     PASSPORT = "passport"
@@ -49,6 +48,8 @@ class CustomerProfile:
     phone: str
     email: str
 
+    chrome_driver_path: str
+
     operation_code: OperationType = OperationType.TOMA_HUELLAS
     city: str = "Barcelona"
     country: str = "RUSIA"
@@ -56,9 +57,8 @@ class CustomerProfile:
     card_expire_date: Optional[str] = None  # "dd/mm/yyyy"
     auto_captcha: bool = True
     auto_pd: bool = True
-    chrome_driver_path: str = None
     selected_pd: Optional[str] = None
-    wait_exact_time: Optional[list] = None # [[minute, second]]
+    wait_exact_time: Optional[list] = None  # [[minute, second]]
 
     anticaptcha_plugin_path: Optional[str] = None
     api_key: Optional[str] = None
@@ -99,11 +99,11 @@ def init_wedriver(context):
     options
 
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
+    options.add_experimental_option("useAutomationExtension", False)
     browser = webdriver.Chrome(context.chrome_driver_path, options=options)
 
     browser.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-    browser.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": ua})
+    browser.execute_cdp_cmd("Network.setUserAgentOverride", {"userAgent": ua})
 
     # https://anti-captcha.com/clients/settings/apisetup
     if context.auto_captcha:
@@ -277,7 +277,8 @@ def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
 def wait_exact_time(driver: webdriver, context: CustomerProfile):
     if context.wait_exact_time:
         WebDriverWait(driver, 1200).until(
-            lambda _x: [datetime.datetime.now().minute, datetime.datetime.now().second] in context.wait_exact_time
+            lambda _x: [datetime.datetime.now().minute, datetime.datetime.now().second]
+            in context.wait_exact_time
         )
 
 
@@ -300,7 +301,9 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
 
         time.sleep(0.3)
         try:
-            WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "btnConsultar")))
+            WebDriverWait(driver, DELAY).until(
+                EC.presence_of_element_located((By.ID, "btnConsultar"))
+            )
             break
         except TimeoutException:
             print("Timed out waiting for page to load after captcha")
@@ -325,7 +328,9 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
 
     # 2. Tramite selection:
     try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "tramiteGrupo[1]")))
+        WebDriverWait(driver, DELAY).until(
+            EC.presence_of_element_located((By.ID, "tramiteGrupo[1]"))
+        )
     except TimeoutException:
         print("Timed out waiting for page to load")
         return None
