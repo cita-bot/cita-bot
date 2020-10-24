@@ -48,7 +48,7 @@ class CustomerProfile:
     phone: str
     email: str
 
-    chrome_driver_path: str
+    chrome_driver_path: str = "/usr/local/bin/chromedriver"
 
     operation_code: OperationType = OperationType.TOMA_HUELLAS
     city: str = "Barcelona"
