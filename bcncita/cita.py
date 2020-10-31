@@ -289,7 +289,7 @@ def wait_exact_time(driver: webdriver, context: CustomerProfile):
         )
 
 
-def process_captcha(driver: webdriver, context: CustomerProfile):
+def process_captcha(driver: webdriver, context: CustomerProfile, partially: bool = False):
     for i in range(1, 4):
         if context.auto_captcha:
             # wait for captcha and proceed:
@@ -301,8 +301,11 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
             input()
             logging.info("OK, Waiting")
 
-        time.sleep(0.3)
+        # stop the function upon captcha is solved
+        if partially:
+            return True
 
+        time.sleep(0.3)
         btn = driver.find_element_by_id("btnEnviar")
         btn.send_keys(Keys.ENTER)
 
@@ -317,6 +320,7 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
             # Failed to get captcha
             logging.error("Tries exceeded")
             return None
+
     return True
 
 
@@ -349,6 +353,83 @@ def select_office(driver: webdriver, context: CustomerProfile):
 
             select.select_by_index(random.randint(0, len(select.options) - 1))
             return True
+
+
+def solicitar_cita(driver: webdriver, context: CustomerProfile):
+    driver.execute_script("enviar('solicitud');")
+
+    for i in range(REFRESH_PAGE_CYCLES):
+        try:
+            WebDriverWait(driver, DELAY).until(
+                EC.presence_of_element_located((By.TAG_NAME, "body"))
+            )
+        except TimeoutException:
+            logging.error("Timed out waiting for body to load")
+            return None
+
+        resp_text = driver.find_element_by_tag_name("body").text
+
+        if "Por favor, valide el Captcha para poder continuar" in resp_text:
+            success = process_captcha(driver, context, partially=True)
+            if not success:
+                return None
+
+            return solicitar_cita(driver, context)
+
+        elif "Seleccione la oficina donde solicitar la cita" in resp_text:
+            logging.info("Towns hit! :)")
+
+            # Office selection:
+            time.sleep(0.3)
+            try:
+                WebDriverWait(driver, DELAY).until(
+                    EC.presence_of_element_located((By.ID, "btnSiguiente"))
+                )
+            except TimeoutException:
+                logging.error("Timed out waiting for offices to load")
+                return None
+
+            res = select_office(driver, context)
+            if res is None:
+                time.sleep(5)
+                driver.refresh()
+                continue
+
+            btn = driver.find_element_by_id("btnSiguiente")
+            btn.send_keys(Keys.ENTER)
+            return True
+        elif "En este momento no hay citas disponibles" in resp_text:
+            time.sleep(5)
+            driver.refresh()
+            continue
+        else:
+            logging.info("No towns")
+            return None
+
+
+def phone_mail(driver: webdriver, context: CustomerProfile):
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "emailDOS")))
+        logging.info("Email page hit")
+    except TimeoutException:
+        logging.error("Timed out waiting for phone/email to load")
+        return None
+
+    element = driver.find_element_by_id("txtTelefonoCitado")
+    element.clear()
+    element.send_keys(context.phone)  # phone num
+
+    element = driver.find_element_by_id("emailUNO")
+    element.clear()
+    element.send_keys(context.email)
+
+    element = driver.find_element_by_id("emailDOS")
+    element.clear()
+    element.send_keys(context.email)
+
+    driver.execute_script("enviar();")
+
+    return cita_selection(driver, context)
 
 
 def cycle_cita(driver: webdriver, context: CustomerProfile):
@@ -428,74 +509,15 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         return None
 
     # 5. Solicitar cita:
-    btn = driver.find_element_by_id("btnEnviar")
-    btn.send_keys(Keys.ENTER)
-
-    for i in range(REFRESH_PAGE_CYCLES):
-        try:
-            WebDriverWait(driver, DELAY).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
-            )
-        except TimeoutException:
-            logging.error("Timed out waiting for body to load")
-            return None
-
-        resp_text = driver.find_element_by_tag_name("body").text
-
-        if "Seleccione la oficina donde solicitar la cita" in resp_text:
-            logging.info("Towns hit! :)")
-
-            # 6. Office selection:
-            time.sleep(0.3)
-            try:
-                WebDriverWait(driver, DELAY).until(
-                    EC.presence_of_element_located((By.ID, "btnSiguiente"))
-                )
-            except TimeoutException:
-                logging.error("Timed out waiting for offices to load")
-                return None
-
-            res = select_office(driver, context)
-            if res is None:
-                time.sleep(5)
-                driver.refresh()
-                continue
-
-            btn = driver.find_element_by_id("btnSiguiente")
-            btn.send_keys(Keys.ENTER)
-            break
-        elif "En este momento no hay citas disponibles" in resp_text:
-            time.sleep(5)
-            driver.refresh()
-            continue
-        else:
-            logging.info("No towns")
-            return None
-
-    # 7. phone-mail:
-    try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "emailDOS")))
-        logging.info("Email page hit")
-    except TimeoutException:
-        logging.error("Timed out waiting for phone/email to load")
+    solcitar = solicitar_cita(driver, context)
+    if solcitar is None:
         return None
 
-    element = driver.find_element_by_id("txtTelefonoCitado")
-    element.send_keys(context.phone)  # phone num
-
-    element = driver.find_element_by_id("emailUNO")
-    element.send_keys(context.email)
-
-    element = driver.find_element_by_id("emailDOS")
-    element.send_keys(context.email)
-
-    btn = driver.find_element_by_id("btnSiguiente")
-    btn.send_keys(Keys.ENTER)
-
-    return cita_selection(driver, context)
+    # 6. phone-mail:
+    return phone_mail(driver, context)
 
 
-# 8. Cita selection
+# 7. Cita selection
 def cita_selection(driver: webdriver, context: CustomerProfile):
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
@@ -505,7 +527,14 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
 
     resp_text = driver.find_element_by_tag_name("body").text
 
-    if "DISPONE DE 5 MINUTOS" in resp_text:
+    if "Por favor, valide el Captcha para poder continuar" in resp_text:
+        success = process_captcha(driver, context, partially=True)
+        if not success:
+            return None
+
+        return phone_mail(driver, context)
+
+    elif "DISPONE DE 5 MINUTOS" in resp_text:
         logging.info("Cita attempt -> selection hit! :)")
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{datetime.datetime.now()}.png".replace(":", "-"))
@@ -525,7 +554,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         logging.info("Cita attempt -> missed selection :(")
         return None
 
-    # 9. Confirmation
+    # 8. Confirmation
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
     except TimeoutException:
