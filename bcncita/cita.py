@@ -437,7 +437,7 @@ def solicitar_cita(driver: webdriver, context: CustomerProfile):
             return None
 
 
-def phone_mail(driver: webdriver, context: CustomerProfile):
+def phone_mail(driver: webdriver, context: CustomerProfile, retry: bool = False):
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "emailDOS")))
         logging.info("Email page hit")
@@ -445,17 +445,18 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
         logging.error("Timed out waiting for phone/email to load")
         return None
 
-    element = driver.find_element_by_id("txtTelefonoCitado")
-    element.clear()
-    element.send_keys(context.phone)  # phone num
+    if not retry:
+        element = driver.find_element_by_id("txtTelefonoCitado")
+        element.clear()
+        element.send_keys(context.phone)  # phone num
 
-    element = driver.find_element_by_id("emailUNO")
-    element.clear()
-    element.send_keys(context.email)
+        element = driver.find_element_by_id("emailUNO")
+        element.clear()
+        element.send_keys(context.email)
 
-    element = driver.find_element_by_id("emailDOS")
-    element.clear()
-    element.send_keys(context.email)
+        element = driver.find_element_by_id("emailDOS")
+        element.clear()
+        element.send_keys(context.email)
 
     driver.execute_script("enviar();")
 
@@ -558,7 +559,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         if not success:
             return None
 
-        return phone_mail(driver, context)
+        return phone_mail(driver, context, retry=True)
 
     elif "DISPONE DE 5 MINUTOS" in resp_text:
         logging.info("Cita attempt -> selection hit! :)")
