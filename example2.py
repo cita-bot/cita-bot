@@ -11,7 +11,7 @@ if __name__ == "__main__":
         chrome_driver_path="/usr/local/bin/chromedriver",
         # chrome_profile_name="Profile 7",
         # chrome_profile_path=f"{os.curdir}/chrome_profiles/",
-        fast_forward_url="https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?p=8&tramite=4010&org=AGE",
+        # fast_forward_url="https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?p=8&tramite=4010&org=AGE",
         save_artifacts=True,
         telegram_token="... your key here ...",
         # wait_exact_time = [
