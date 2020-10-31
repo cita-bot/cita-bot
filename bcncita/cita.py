@@ -661,10 +661,12 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                 os._exit(0)
             return None
         else:
-            for i in range(5):
+            for i in range(10):
                 speaker.say("ALARM")
             logging.info("Press Any button to CLOSE browser")
             input()
+            driver.quit()
+            os._exit(0)
 
     else:
         logging.info("Cita attempt -> missed confirmation :(")
