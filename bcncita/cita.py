@@ -289,6 +289,17 @@ def wait_exact_time(driver: webdriver, context: CustomerProfile):
         )
 
 
+def body_text(driver: webdriver):
+    try:
+        WebDriverWait(driver, DELAY).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
+        return driver.find_element_by_tag_name("body").text
+    except TimeoutException:
+        logging.info("Timed out waiting for body to load")
+        return ""
+
+
 def process_captcha(driver: webdriver, context: CustomerProfile, partially: bool = False):
     for i in range(1, 4):
         if context.auto_captcha:
@@ -359,15 +370,7 @@ def solicitar_cita(driver: webdriver, context: CustomerProfile):
     driver.execute_script("enviar('solicitud');")
 
     for i in range(REFRESH_PAGE_CYCLES):
-        try:
-            WebDriverWait(driver, DELAY).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
-            )
-        except TimeoutException:
-            logging.error("Timed out waiting for body to load")
-            return None
-
-        resp_text = driver.find_element_by_tag_name("body").text
+        resp_text = body_text(driver)
 
         if "Por favor, valide el Captcha para poder continuar" in resp_text:
             success = process_captcha(driver, context, partially=True)
@@ -519,13 +522,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
 
 # 7. Cita selection
 def cita_selection(driver: webdriver, context: CustomerProfile):
-    try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-    except TimeoutException:
-        logging.error("Timed out waiting for body to load")
-        return None
-
-    resp_text = driver.find_element_by_tag_name("body").text
+    resp_text = body_text(driver)
 
     if "Por favor, valide el Captcha para poder continuar" in resp_text:
         success = process_captcha(driver, context, partially=True)
@@ -555,13 +552,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         return None
 
     # 8. Confirmation
-    try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-    except TimeoutException:
-        logging.error("Timed out waiting for body to load")
-        return None
-
-    resp_text = driver.find_element_by_tag_name("body").text
+    resp_text = body_text(driver)
 
     if "Debe confirmar los datos de la cita asignada" in resp_text:
         logging.info("Cita attempt -> confirmation hit! :)")
@@ -585,15 +576,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                 btn = driver.find_element_by_id("btnConfirmar")
                 btn.send_keys(Keys.ENTER)
 
-                try:
-                    WebDriverWait(driver, DELAY).until(
-                        EC.presence_of_element_located((By.TAG_NAME, "body"))
-                    )
-                except TimeoutException:
-                    logging.info("Timed out waiting for body to load")
-                    return None
-
-                resp_text = driver.find_element_by_tag_name("body").text
+                resp_text = body_text(driver)
                 ctime = datetime.datetime.now()
 
                 if "CITA CONFIRMADA Y GRABADA" in resp_text:
