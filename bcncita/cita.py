@@ -322,9 +322,7 @@ def wait_exact_time(driver: webdriver, context: CustomerProfile):
 
 def body_text(driver: webdriver):
     try:
-        WebDriverWait(driver, DELAY).until(
-            EC.presence_of_element_located((By.TAG_NAME, "body"))
-        )
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
         return driver.find_element_by_tag_name("body").text
     except TimeoutException:
         logging.info("Timed out waiting for body to load")
@@ -451,15 +449,12 @@ def phone_mail(driver: webdriver, context: CustomerProfile, retry: bool = False)
 
     if not retry:
         element = driver.find_element_by_id("txtTelefonoCitado")
-        element.clear()
         element.send_keys(context.phone)  # phone num
 
         element = driver.find_element_by_id("emailUNO")
-        element.clear()
         element.send_keys(context.email)
 
         element = driver.find_element_by_id("emailDOS")
-        element.clear()
         element.send_keys(context.email)
 
     driver.execute_script("enviar();")
