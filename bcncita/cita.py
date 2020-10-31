@@ -173,7 +173,8 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     logging.basicConfig(
         format="%(asctime)s - %(message)s", level=logging.INFO, **context.log_settings
     )
-    context.updater = Updater(token=context.telegram_token, use_context=True)
+    if context.telegram_token:
+        context.updater = Updater(token=context.telegram_token, use_context=True)
     success = False
     result = False
     for i in range(cycles):
