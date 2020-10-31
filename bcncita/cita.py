@@ -497,13 +497,13 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         # 2. Tramite selection:
         try:
             WebDriverWait(driver, DELAY).until(
-                EC.presence_of_element_located((By.ID, "tramiteGrupo[1]"))
+                EC.presence_of_element_located((By.ID, "tramiteGrupo[0]"))
             )
         except TimeoutException:
             logging.error("Timed out waiting for tramite to load")
             return None
 
-        select = Select(driver.find_element_by_id("tramiteGrupo[1]"))
+        select = Select(driver.find_element_by_id("tramiteGrupo[0]"))
         # Select "Huellos"
         select.select_by_value(context.operation_code.value)
 
