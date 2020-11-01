@@ -1,6 +1,6 @@
 # import os
 
-from bcncita import CustomerProfile, DocType, Office, OperationType, try_cita
+from bcncita import CustomerProfile, DocType, Office, OperationType, Province, try_cita
 
 if __name__ == "__main__":
     customer = CustomerProfile(
@@ -11,7 +11,6 @@ if __name__ == "__main__":
         chrome_driver_path="/usr/local/bin/chromedriver",
         # chrome_profile_name="Profile 7",
         # chrome_profile_path=f"{os.curdir}/chrome_profiles/",
-        # fast_forward_url="https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?p=8&tramite=4010&org=AGE",
         save_artifacts=True,
         telegram_token="... your key here ...",
         # wait_exact_time = [
@@ -20,10 +19,11 @@ if __name__ == "__main__":
         #     [30, 0],
         #     [45, 0],
         # ],
-        # city="Tarragona",
+        province=Province.BARCELONA,
         operation_code=OperationType.TOMA_HUELLAS,
         doc_type=DocType.PASSPORT,
         doc_value="1100123123",
+        country="RUSIA",
         name="BORIS JOHNSON",
         phone="600000000",
         email="myemail@here.com",

@@ -52,12 +52,11 @@ class CustomerProfile:
     chrome_driver_path: str = None
     chrome_profile_name: Optional[str] = None
     chrome_profile_path: Optional[str] = None
-    fast_forward_url: Optional[str] = None
     save_artifacts: bool = False
     telegram_token: Optional[str] = None
     wait_exact_time: Optional[list] = None # [[minute, second]]
 
-    city: str = "Barcelona"
+    province: Province = Province.BARCELONA
     operation_code: OperationType = OperationType.TOMA_HUELLAS
     doc_type: DocType
     doc_value: str  # Passport? "123123123"; Nie? "Y1111111M"
@@ -82,7 +81,7 @@ class CustomerProfile:
 
 * `wait_exact_time` — Set specific time (minute and second) you want it to hit `Solicitar cita` button
 
-* `city` — City name (Barcelona by default). Copypaste using Chrome DevTools from the Select options, please.
+* `province` — Province name (`Province.BARCELONA` by default).
 
 * `operation_code` — `OperationType.TOMA_HUELLAS` or `OperationType.RECOGIDA_DE_TARJETA` or `OperationType.SOLICITUD`
 

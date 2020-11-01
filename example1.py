@@ -1,6 +1,6 @@
 # import os
 
-from bcncita import CustomerProfile, DocType, Office, OperationType, try_cita
+from bcncita import CustomerProfile, DocType, Office, OperationType, Province, try_cita
 
 if __name__ == "__main__":
     customer = CustomerProfile(
@@ -11,7 +11,6 @@ if __name__ == "__main__":
         chrome_driver_path="/usr/local/bin/chromedriver",
         # chrome_profile_name="Profile 7",  # Profile name
         # chrome_profile_path=f"{os.curdir}/chrome_profiles/",  # You can persist Chrome profile between runs, it's good for captcha :)
-        # fast_forward_url="https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?p=8&tramite=4036&org=AGE",  # Skip first 2 screens by replacing p (city) and tramite
         save_artifacts=True,  # Record available offices / take available slots screenshot
         telegram_token="... your key here ...",  # Your Telegram bot token (sms-confirm cita through a bot using command "/code 12345")
         # wait_exact_time = [
@@ -20,10 +19,11 @@ if __name__ == "__main__":
         #     [30, 0],
         #     [45, 0],
         # ],
-        # city="Tarragona",
+        province=Province.BARCELONA,
         operation_code=OperationType.RECOGIDA_DE_TARJETA,
         doc_type=DocType.NIE,  # DocType.NIE or DocType.PASSPORT
         doc_value="T1111111R",  # NIE or Passport number, no spaces.
+        country="RUSIA",
         name="BORIS JOHNSON",  # Your Name
         phone="600000000",  # Phone number (use this format, please)
         email="myemail@here.com",  # Email

@@ -21,7 +21,7 @@ from telegram.ext import CommandHandler, Updater
 
 from .speaker import new_speaker
 
-__all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType", "Office"]
+__all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType", "Office", "Province"]
 
 
 CAPTCHA_TIMEOUT = 300
@@ -73,6 +73,61 @@ class Office(str, Enum):
     VILANOVA = "39"  # CNP-COMISARIA VILANOVA I LA GELTRU, VAPOR (19)
 
 
+class Province(str, Enum):
+    A_CORUÑA = "15"
+    ALBACETE = "2"
+    ALICANTE = "3"
+    ALMERÍA = "4"
+    ARABA = "1"
+    ASTURIAS = "33"
+    ÁVILA = "5"
+    BADAJOZ = "6"
+    BARCELONA = "8"
+    BIZKAIA = "48"
+    BURGOS = "9"
+    CÁCERES = "10"
+    CÁDIZ = "11"
+    CANTABRIA = "39"
+    CASTELLÓN = "12"
+    CEUTA = "51"
+    CIUDAD_REAL = "13"
+    CÓRDOBA = "14"
+    CUENCA = "16"
+    GIPUZKOA = "20"
+    GIRONA = "17"
+    GRANADA = "18"
+    GUADALAJARA = "19"
+    HUELVA = "21"
+    HUESCA = "22"
+    ILLES_BALEARS = "7"
+    JAÉN = "23"
+    LA_RIOJA = "26"
+    LAS_PALMAS = "35"
+    LEÓN = "24"
+    LLEIDA = "25"
+    LUGO = "27"
+    MADRID = "28"
+    MÁLAGA = "29"
+    MELILLA = "52"
+    MURCIA = "30"
+    NAVARRA = "31"
+    ORENSE = "32"
+    PALENCIA = "34"
+    PONTEVEDRA = "36"
+    SALAMANCA = "37"
+    S_CRUZ_TENERIFE = "38"
+    SEGOVIA = "40"
+    SEVILLA = "41"
+    SORIA = "42"
+    TARRAGONA = "43"
+    TERUEL = "44"
+    TOLEDO = "45"
+    VALENCIA = "46"
+    VALLADOLID = "47"
+    ZAMORA = "49"
+    ZARAGOZA = "50"
+
+
 @dataclass
 class CustomerProfile:
     name: str
@@ -80,7 +135,7 @@ class CustomerProfile:
     doc_value: str  # Passport? "123123123"; Nie? "Y1111111M"
     phone: str
     email: str
-    city: str = "Barcelona"
+    province: Province = Province.BARCELONA
     operation_code: OperationType = OperationType.TOMA_HUELLAS
     country: str = "RUSIA"
     year_of_birth: Optional[str] = None
@@ -94,7 +149,6 @@ class CustomerProfile:
     chrome_driver_path: str = "/usr/local/bin/chromedriver"
     chrome_profile_name: Optional[str] = None
     chrome_profile_path: Optional[str] = None
-    fast_forward_url: Optional[str] = None
     save_artifacts: bool = False
     telegram_token: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
@@ -471,44 +525,20 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         logging.error(e)
         pass
 
-    if context.fast_forward_url:
-        while True:
-            try:
-                driver.set_page_load_timeout(300 if context.first_load else 50)
-                driver.get(context.fast_forward_url)
-            except TimeoutException:
-                logging.error("Timed out loading initial page")
-                continue
-            break
-        context.first_load = False
-        session_id = driver.get_cookie("JSESSIONID").get("value")
-        logging.info(session_id)
-    else:
-        driver.get("https://sede.administracionespublicas.gob.es/icpplus/index.html")
-        time.sleep(1)  # Let the user actually see something!
-
-        # Select "Barcelona"
-        select = Select(driver.find_element_by_id("form"))
-        select.select_by_visible_text(context.city)
-
-        btn = driver.find_element_by_id("btnAceptar")
-        btn.send_keys(Keys.ENTER)
-
-        # 2. Tramite selection:
+    fast_forward_url = "https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?p={}&tramite={}&org=AGE".format(
+        context.province, context.operation_code
+    )
+    while True:
         try:
-            WebDriverWait(driver, DELAY).until(
-                EC.presence_of_element_located((By.ID, "tramiteGrupo[0]"))
-            )
+            driver.set_page_load_timeout(300 if context.first_load else 50)
+            driver.get(fast_forward_url)
         except TimeoutException:
-            logging.error("Timed out waiting for tramite to load")
-            return None
-
-        select = Select(driver.find_element_by_id("tramiteGrupo[0]"))
-        # Select "Huellos"
-        select.select_by_value(context.operation_code.value)
-
-        btn = driver.find_element_by_id("btnAceptar")
-        btn.send_keys(Keys.ENTER)
+            logging.error("Timed out loading initial page")
+            continue
+        break
+    context.first_load = False
+    session_id = driver.get_cookie("JSESSIONID").get("value")
+    logging.info(session_id)
 
     # 3. Instructions page:
     try:
