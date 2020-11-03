@@ -35,15 +35,17 @@ speaker = new_speaker()
 
 
 class DocType(str, Enum):
-    PASSPORT = "passport"
+    DNI = "dni"
     NIE = "nie"
+    PASSPORT = "passport"
 
 
 class OperationType(str, Enum):
-    TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
+    BREXIT = "4094"  # POLICÍA-EXP.TARJETA ASOCIADA AL ACUERDO DE RETIRADA CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (BREXIT)
+    CERTIFICADOS_UE = "22"  # POLICIA-CERTIFICADOS UE
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD = "4"  # EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
-    BREXIT = "4094"  # POLICÍA-EXP.TARJETA ASOCIADA AL ACUERDO DE RETIRADA CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (BREXIT)
+    TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
 
 
 class Office(str, Enum):
@@ -370,6 +372,37 @@ def brexit_step2(driver: webdriver, context: CustomerProfile):
     return True
 
 
+def certificados_ue_step2(driver: webdriver, context: CustomerProfile):
+    # 4. Data form:
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtPaisNac")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
+
+    # Select country
+    select = Select(driver.find_element_by_id("txtPaisNac"))
+    select.select_by_visible_text(context.country)
+
+    # Select doc type
+    if context.doc_type == DocType.PASSPORT:
+        driver.find_element_by_id("rdbTipoDocPasDdi").send_keys(Keys.SPACE)
+    elif context.doc_type == DocType.NIE:
+        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+    elif context.doc_type == DocType.DNI:
+        driver.find_element_by_id("rdbTipoDocDni").send_keys(Keys.SPACE)
+
+    # Enter doc number and name
+    element = driver.find_element_by_id("txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name)
+
+    success = process_captcha(driver, context)
+    if not success:
+        return
+
+    return True
+
+
 def wait_exact_time(driver: webdriver, context: CustomerProfile):
     if context.wait_exact_time:
         WebDriverWait(driver, 1200).until(
@@ -563,6 +596,8 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         success = solicitud_step2(driver, context)
     elif context.operation_code == OperationType.BREXIT:
         success = brexit_step2(driver, context)
+    elif context.operation_code == OperationType.CERTIFICADOS_UE:
+        success = certificados_ue_step2(driver, context)
 
     if not success:
         return None
