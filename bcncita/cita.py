@@ -159,6 +159,10 @@ class CustomerProfile:
     log_settings: Optional[dict] = field(default_factory=lambda: {"stream": sys.stdout})
     updater: Any = object()
 
+    def __post_init__(self):
+        if self.operation_code == OperationType.RECOGIDA_DE_TARJETA:
+            assert len(self.offices) == 1, "Indicate the office where you need to pick up the card"
+
 
 def init_wedriver(context):
     def acp_api_send_request(driver, message_type, data={}):
@@ -443,10 +447,9 @@ def select_office(driver: webdriver, context: CustomerProfile):
                     logging.error(e)
                     if context.operation_code == OperationType.RECOGIDA_DE_TARJETA:
                         return None
-                    pass
 
-            select.select_by_index(random.randint(0, len(select.options) - 1))
-            return True
+        select.select_by_index(random.randint(0, len(select.options) - 1))
+        return True
 
 
 def solicitar_cita(driver: webdriver, context: CustomerProfile):
