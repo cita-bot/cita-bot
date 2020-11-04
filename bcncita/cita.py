@@ -278,7 +278,7 @@ def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element_by_id("rdbTipoDocPasDdi").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
         driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
 
@@ -307,7 +307,7 @@ def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element_by_id("rdbTipoDocPasDdi").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
         driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
 
@@ -332,7 +332,7 @@ def solicitud_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element_by_id("rdbTipoDocPasDdi").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
         driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
 
@@ -357,7 +357,7 @@ def brexit_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element_by_id("rdbTipoDocPasDdi").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
         driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
 
@@ -386,7 +386,7 @@ def certificados_ue_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPasDdi").send_keys(Keys.SPACE)
+        driver.find_element_by_id("rdbTipoDocPasDdiDdi").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
         driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.DNI:
