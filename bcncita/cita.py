@@ -46,6 +46,7 @@ class OperationType(str, Enum):
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD = "4"  # EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
+    AUTORIZACION_DE_REGRESO = "20"  # POLICIA-AUTORIZACIÓN DE REGRESO
 
 
 class Office(str, Enum):
@@ -403,6 +404,31 @@ def certificados_ue_step2(driver: webdriver, context: CustomerProfile):
     return True
 
 
+def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
+    # 4. Data form:
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
+
+    # Select doc type
+    if context.doc_type == DocType.PASSPORT:
+        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+    elif context.doc_type == DocType.NIE:
+        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+
+    # Enter doc number, name and year of birth
+    element = driver.find_element_by_id("txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+
+    success = process_captcha(driver, context)
+    if not success:
+        return
+
+    return True
+
+
 def wait_exact_time(driver: webdriver, context: CustomerProfile):
     if context.wait_exact_time:
         WebDriverWait(driver, 1200).until(
@@ -598,6 +624,8 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         success = brexit_step2(driver, context)
     elif context.operation_code == OperationType.CERTIFICADOS_UE:
         success = certificados_ue_step2(driver, context)
+    elif context.operation_code == OperationType.AUTORIZACION_DE_REGRESO:
+        success = autorizacion_de_regreso_step2(driver, context)
 
     if not success:
         return None

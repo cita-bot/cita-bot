@@ -83,7 +83,7 @@ class CustomerProfile:
 
 * `province` — Province name (`Province.BARCELONA` by default).
 
-* `operation_code` — The following are supported: `OperationType.TOMA_HUELLAS`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.BREXIT`, `OperationType.CERTIFICADOS_UE`
+* `operation_code` — The following are supported: `OperationType.TOMA_HUELLAS`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.BREXIT`, `OperationType.CERTIFICADOS_UE`, `OperationType.AUTORIZACION_DE_REGRESO`
 
 * `doc_type` — `DocType.NIE`, `DocType.PASSPORT` or `DocType.DNI`
 
