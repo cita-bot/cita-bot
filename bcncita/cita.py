@@ -679,6 +679,21 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         btn = driver.find_element_by_id("btnSiguiente")
         btn.send_keys(Keys.ENTER)
         driver.switch_to.alert.accept()
+    elif "Seleccione una de las siguientes citas disponibles" in resp_text:
+        logging.info("Cita attempt -> selection hit! :)")
+        if context.save_artifacts:
+            driver.save_screenshot(f"citas-{datetime.datetime.now()}.png".replace(":", "-"))
+
+        try:
+            slots = driver.find_elements_by_css_selector("#CitaMAP_HORAS tbody [id^=HUECO]")
+            slot_ids = sorted([*map(lambda x: x.get_attribute("id"), slots)])
+            if slot_ids:
+                slot = slot_ids[0]
+                driver.execute_script(f"confirmarHueco({{id: '{slot}'}}, {slot[5:]});")
+                driver.switch_to.alert.accept()
+        except Exception as e:
+            logging.error(e)
+            return None
     else:
         logging.info("Cita attempt -> missed selection :(")
         return None
