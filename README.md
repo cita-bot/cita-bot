@@ -1,13 +1,31 @@
 Cita helper
 ===========
 
-This selenium automatization python script helps to catch cita timeslot.
+This Selenium automatization script helps to catch cita timeslot.
 
 **It DOES make a reservation (semi)automatically**
 
-...if you set up a Telegram bot and use it for SMS confirmation. Otherwise:
+...if you [set up a Telegram bot](https://docs.microsoft.com/en-us/azure/bot-service/bot-service-channel-connect-telegram) and use it for SMS confirmation. Otherwise:
 
-Enable your speakers and wait for "ALARM ALARM ALARM" message :) Next you'll have to select timeslot and confirm an appointment via SMS code.
+Enable your speakers and wait for "ALARM ALARM ALARM" message :) Next you'll have to confirm an appointment via SMS code.
+
+Support notes
+-------------
+
+If you want a support for new procedure or province, open an issue or better a pull request.
+The following things are fully supported at the moment:
+
+Procedures:
+- EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
+- POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
+- POLICIA-AUTORIZACIÓN DE REGRESO
+- POLICIA-CERTIFICADOS UE
+- POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
+- POLICÍA-EXP.TARJETA ASOCIADA AL ACUERDO DE RETIRADA CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (BREXIT)
+
+Provinces:
+- Barcelona
+- Santa Cruz de Tenerife
 
 Installation TL;DR
 -------------------
@@ -69,21 +87,21 @@ class CustomerProfile:
     offices: Optional[list] = field(default_factory=list)
 ```
 
-* `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if auto_captcha=False)
+* `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if `auto_captcha=False`)
 
 * `anticaptcha_plugin_path` — Full path for the plugin file.
 
-* `auto_captcha` — Should we use Anti-Captcha plugin? For a testing purposes, you can disable it and solve reCaptcha by youreslf. Do not click "Enter" or "Accept" buttons, just solve captcha and click Enter in the Terminal.
+* `auto_captcha` — Should we use Anti-Captcha plugin? For testing purposes, you can disable it and solve reCaptcha by yourself. Do not click "Enter" or "Accept" buttons, just solve captcha and click Enter in the Terminal.
 
-* `auto_office` — Automatically choose of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just click Enter in the Terminal.
+* `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just click Enter in the Terminal.
 
 * `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`
 
 * `wait_exact_time` — Set specific time (minute and second) you want it to hit `Solicitar cita` button
 
-* `province` — Province name (`Province.BARCELONA` by default).
+* `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`).
 
-* `operation_code` — The following are supported: `OperationType.TOMA_HUELLAS`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.BREXIT`, `OperationType.CERTIFICADOS_UE`, `OperationType.AUTORIZACION_DE_REGRESO`
+* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.BREXIT`, `OperationType.CERTIFICADOS_UE`, `OperationType.AUTORIZACION_DE_REGRESO`)
 
 * `doc_type` — `DocType.NIE`, `DocType.PASSPORT` or `DocType.DNI`
 
@@ -93,7 +111,7 @@ class CustomerProfile:
 
 * `year_of_birth` — Year of birth, like "YYYY"
 
-* `country` — Country (RUSIA by default). The same copypaste, please.
+* `country` — Country (RUSIA by default). Copypaste yours from the appropriate page.
 
 * `card_expire_date` — Card Expiration Date. Probably, it's not important at all, leave it empty.
 
@@ -101,7 +119,7 @@ class CustomerProfile:
 
 * `email` — Email
 
-* `offices` — Required field for for RECOGIDA_DE_TARJETA! If provided, script will try to select the specific police station or end the cycle. For TOMA_HUELLAS it attempts to select all provided offices one by one, otherwise selects a random one.
+* `offices` — Required field for for `RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random one.
 
 **Chrome Profile Persistence**
 
