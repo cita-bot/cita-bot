@@ -594,7 +594,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         logging.error(e)
         pass
 
-    fast_forward_url = "https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?p={}&tramite={}&org=AGE".format(
+    fast_forward_url = "https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?p={}&tramite={}".format(
         context.province, context.operation_code
     )
     while True:

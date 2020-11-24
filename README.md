@@ -27,6 +27,8 @@ Provinces:
 - Barcelona
 - Santa Cruz de Tenerife
 
+Other provinces are also supported if you leave `offices` empty and that way try and get an appointment in a random one, but if you're required to select a specific office (as in case of `RECOGIDA_DE_TARJETA`), you should figure out office ids for your province from the appropriate page on your own.
+
 Installation TL;DR
 -------------------
 
@@ -119,7 +121,7 @@ class CustomerProfile:
 
 * `email` — Email
 
-* `offices` — Required field for for `RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random one.
+* `offices` — Required field for `RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random one.
 
 **Chrome Profile Persistence**
 
@@ -139,3 +141,14 @@ How to fix dependencies
 1. For Windows, download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH (see step 4 of Installation)
 
 3. Chrome → Firefox — it's possible as well (tune code, paths, browser run arguments, plugin)
+
+
+Generate script for Autofill Chrome extension
+---------------------------------------------
+
+To generate script for [Autofill](https://chrome.google.com/webstore/detail/autofill/nlmmgnhgdeffjkdckmikfpnddkbbfkkk)
+extension use `--autofill` option. This approach allows you to forget about captcha.
+
+```bash
+$ python grab_me.py --autofill
+```

@@ -1,2 +1,3 @@
 selenium==3.141.0
 python-telegram-bot==12.8
+Mako==1.1.3

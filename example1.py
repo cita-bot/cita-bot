@@ -1,5 +1,5 @@
-# import os
-
+import os
+import sys
 from bcncita import CustomerProfile, DocType, Office, OperationType, Province, try_cita
 
 if __name__ == "__main__":
@@ -32,8 +32,20 @@ if __name__ == "__main__":
         # For recogida only the first specified office will be attempted or none
         offices=[Office.BARCELONA_MALLORCA],
     )
-    try_cita(context=customer, cycles=100)  # Try 100 times
+    if not "--autofill" in sys.argv:
+        try_cita(context=customer, cycles=200)  # Try 200 times
+    else:
+        from mako.template import Template
+
+        tpl = Template(
+            filename=os.path.join(
+                os.path.dirname(os.path.abspath(__file__)), "bcncita/template/autofill.mako"
+            )
+        )
+        print(tpl.render(ctx=customer))  # Autofill for Chrome
 
 
 # In Terminal run:
 #   python3 example1.py
+# or:
+#   python3 example1.py --autofill
