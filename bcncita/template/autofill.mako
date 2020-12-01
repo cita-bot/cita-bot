@@ -98,6 +98,10 @@ if (current_page() === "acOfertarCita") {
   }
 }
 
+if (current_page() === "acVerificarCita") {
+  disable_reload = true;
+}
+
 if (!disable_reload) {
     setInterval(() => {
         window.location.href = fast_forward_url;
