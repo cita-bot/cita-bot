@@ -676,8 +676,8 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             logging.error(e)
             pass
 
-        btn = driver.find_element_by_id("btnSiguiente")
-        btn.send_keys(Keys.ENTER)
+        driver.execute_script("envia();")
+        time.sleep(0.5)
         driver.switch_to.alert.accept()
     elif "Seleccione una de las siguientes citas disponibles" in resp_text:
         logging.info("Cita attempt -> selection hit! :)")
