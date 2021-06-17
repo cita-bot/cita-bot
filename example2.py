@@ -1,11 +1,11 @@
 import os
 import sys
+
 from bcncita import CustomerProfile, DocType, Office, OperationType, Province, try_cita
 
 if __name__ == "__main__":
     customer = CustomerProfile(
         anticaptcha_api_key="... your key here ...",
-        anticaptcha_plugin_path="/Users/username/Downloads/anticaptcha-plugin_v0.50.crx",
         auto_captcha=True,
         auto_office=True,
         chrome_driver_path="/usr/local/bin/chromedriver",
@@ -27,12 +27,9 @@ if __name__ == "__main__":
         name="BORIS JOHNSON",
         phone="600000000",
         email="myemail@here.com",
-        offices=[
-            Office.BARCELONA,
-            Office.MATARO,
-        ],
+        offices=[Office.BARCELONA, Office.MATARO],
     )
-    if not "--autofill" in sys.argv:
+    if "--autofill" not in sys.argv:
         try_cita(context=customer, cycles=200)  # Try 200 times
     else:
         from mako.template import Template

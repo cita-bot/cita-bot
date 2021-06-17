@@ -5,7 +5,6 @@ from bcncita import CustomerProfile, DocType, Office, OperationType, Province, t
 if __name__ == "__main__":
     customer = CustomerProfile(
         anticaptcha_api_key="... your key here ...",
-        anticaptcha_plugin_path="/Users/username/Downloads/anticaptcha-plugin_v0.50.crx",
         auto_captcha=True,
         auto_office=True,
         chrome_driver_path="/usr/local/bin/chromedriver",
@@ -28,9 +27,6 @@ if __name__ == "__main__":
         phone="600000000",
         email="myemail@here.com",
         year_of_birth="1980",
-        offices=[
-            Office.BARCELONA,
-            Office.MATARO,
-        ],
+        offices=[Office.BARCELONA, Office.MATARO],
     )
     try_cita(context=customer, cycles=200)

@@ -19,7 +19,9 @@ Procedures:
 - EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
 - POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
 - POLICIA-AUTORIZACIÓN DE REGRESO
-- POLICIA-CERTIFICADOS UE
+- POLICIA-CARTA DE INVITACIÓN
+- POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
+- POLICIA-CERTIFICADOS Y ASIGNACION NIE (NO COMUNITARIOS)
 - POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
 - POLICÍA-EXP.TARJETA ASOCIADA AL ACUERDO DE RETIRADA CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (BREXIT)
 
@@ -40,23 +42,21 @@ Installation TL;DR
 
 4. Download [chromedriver](https://chromedriver.chromium.org/downloads) and put it in the PATH (Python dir from step 1 should work).
 
-5. Get plugin https://antcpt.com/downloads/anticaptcha/chrome/anticaptcha-plugin_v0.50.crx
+5. Get API Key from https://anti-captcha.com ($5 is enough, trust me! :)
 
-6. Get API Key from https://anti-captcha.com ($5 is enough, trust me! :)
+6. Copy example file and fill your data, save it as `grab_me.py`.
 
-7. Copy example file and fill your data, save it as `grab_me.py`.
-
-8. Run `python grab_me.py`, follow the voice instructions.
+7. Run `python grab_me.py`, follow the voice instructions.
 
 
 Examples
 --------
 
-* `example1.py` — Recogida de tarjeta
+* `example1.py` — Recogida de tarjeta
 
-* `example2.py` — Toma de huellas
+* `example2.py` — Toma de huellas
 
-* `example3.py` — Solicitud de autorizaciones
+* `example3.py` — Solicitud de autorizaciones
 
 
 Options
@@ -66,7 +66,6 @@ Options
 @dataclass
 class CustomerProfile:
     anticaptcha_api_key: Optional[str] = None
-    anticaptcha_plugin_path: Optional[str] = None
     auto_captcha: bool = True
     auto_office: bool = True
     chrome_driver_path: str = None
@@ -89,37 +88,35 @@ class CustomerProfile:
     offices: Optional[list] = field(default_factory=list)
 ```
 
-* `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if `auto_captcha=False`)
+* `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if `auto_captcha=False`)
 
-* `anticaptcha_plugin_path` — Full path for the plugin file.
+* `auto_captcha` — Should we use Anti-Captcha plugin? For testing purposes, you can disable it and trick reCaptcha by yourself. Do not select a slot or click buttons, just pretend you're a human reading the page (select text, move cursor etc.) and click Enter in the Terminal.
 
-* `auto_captcha` — Should we use Anti-Captcha plugin? For testing purposes, you can disable it and solve reCaptcha by yourself. Do not click "Enter" or "Accept" buttons, just solve captcha and click Enter in the Terminal.
+* `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just click Enter in the Terminal.
 
-* `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just click Enter in the Terminal.
+* `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`
 
-* `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`
+* `wait_exact_time` — Set specific time (minute and second) you want it to hit `Solicitar cita` button
 
-* `wait_exact_time` — Set specific time (minute and second) you want it to hit `Solicitar cita` button
+* `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`).
 
-* `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`).
-
-* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.BREXIT`, `OperationType.CERTIFICADOS_UE`, `OperationType.AUTORIZACION_DE_REGRESO`)
+* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.BREXIT`, `OperationType.CARTA_INVITACION`, `OperationType.CERTIFICADOS_UE`, `OperationType.CERTIFICADOS_NIE_NO_COMUN`, `OperationType.AUTORIZACION_DE_REGRESO`)
 
 * `doc_type` — `DocType.NIE`, `DocType.PASSPORT` or `DocType.DNI`
 
 * `doc_value` — Document number, no spaces
 
-* `name` — First and Last Name
+* `name` — First and Last Name
 
-* `year_of_birth` — Year of birth, like "YYYY"
+* `year_of_birth` — Year of birth, like "YYYY"
 
-* `country` — Country (RUSIA by default). Copypaste yours from the appropriate page.
+* `country` — Country (RUSIA by default). Copypaste yours from the appropriate page.
 
-* `card_expire_date` — Card Expiration Date. Probably, it's not important at all, leave it empty.
+* `card_expire_date` — Card Expiration Date. Probably, it's not important at all, leave it empty.
 
-* `phone` — Phone number, no spaces, like "600000000"
+* `phone` — Phone number, no spaces, like "600000000"
 
-* `email` — Email
+* `email` — Email
 
 * `offices` — Required field for `RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random one.
 
@@ -140,7 +137,7 @@ How to fix dependencies
 
 1. For Windows, download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH (see step 4 of Installation)
 
-3. Chrome → Firefox — it's possible as well (tune code, paths, browser run arguments, plugin)
+3. Chrome → Firefox — it's possible as well (tune code, paths, browser run arguments, plugin)
 
 
 Generate script for Autofill Chrome extension

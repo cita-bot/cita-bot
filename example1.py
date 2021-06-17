@@ -1,11 +1,11 @@
 import os
 import sys
+
 from bcncita import CustomerProfile, DocType, Office, OperationType, Province, try_cita
 
 if __name__ == "__main__":
     customer = CustomerProfile(
         anticaptcha_api_key="... your key here ...",  # Anti-captcha API Key (auto_captcha=False to disable it)
-        anticaptcha_plugin_path="/Users/username/Downloads/anticaptcha-plugin_v0.50.crx",  # Path to plugin
         auto_captcha=True,  # Enable anti-captcha plugin (if False, you have to solve reCaptcha manualy and press ENTER in the Terminal)
         auto_office=True,
         chrome_driver_path="/usr/local/bin/chromedriver",
@@ -32,7 +32,7 @@ if __name__ == "__main__":
         # For recogida only the first specified office will be attempted or none
         offices=[Office.BARCELONA_MALLORCA],
     )
-    if not "--autofill" in sys.argv:
+    if "--autofill" not in sys.argv:
         try_cita(context=customer, cycles=200)  # Try 200 times
     else:
         from mako.template import Template

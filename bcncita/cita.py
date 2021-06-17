@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional
 
+from anticaptchaofficial.recaptchav3proxyless import recaptchaV3Proxyless
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
@@ -23,8 +24,6 @@ from .speaker import new_speaker
 
 __all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType", "Office", "Province"]
 
-
-CAPTCHA_TIMEOUT = 300
 
 CYCLES = 144
 REFRESH_PAGE_CYCLES = 12
@@ -41,12 +40,14 @@ class DocType(str, Enum):
 
 
 class OperationType(str, Enum):
+    AUTORIZACION_DE_REGRESO = "20"  # POLICIA-AUTORIZACIÓN DE REGRESO
     BREXIT = "4094"  # POLICÍA-EXP.TARJETA ASOCIADA AL ACUERDO DE RETIRADA CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (BREXIT)
-    CERTIFICADOS_UE = "22"  # POLICIA-CERTIFICADOS UE
+    CARTA_INVITACION = "4037"  # POLICIA-CARTA DE INVITACIÓN
+    CERTIFICADOS_NIE_NO_COMUN = "4079"  # POLICIA-CERTIFICADOS Y ASIGNACION NIE (NO COMUNITARIOS)
+    CERTIFICADOS_UE = "4038"  # POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD = "4"  # EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
-    AUTORIZACION_DE_REGRESO = "20"  # POLICIA-AUTORIZACIÓN DE REGRESO
 
 
 class Office(str, Enum):
@@ -153,7 +154,6 @@ class CustomerProfile:
     offices: Optional[list] = field(default_factory=list)
 
     anticaptcha_api_key: Optional[str] = None
-    anticaptcha_plugin_path: Optional[str] = None
     auto_captcha: bool = True
     auto_office: bool = True
     chrome_driver_path: str = "/usr/local/bin/chromedriver"
@@ -168,54 +168,20 @@ class CustomerProfile:
     first_load: Optional[bool] = True  # Wait more on the first load to cache stuff
     log_settings: Optional[dict] = field(default_factory=lambda: {"stream": sys.stdout})
     updater: Any = object()
+    solver: Any = None
 
     def __post_init__(self):
         if self.operation_code == OperationType.RECOGIDA_DE_TARJETA:
             assert len(self.offices) == 1, "Indicate the office where you need to pick up the card"
 
 
-def init_wedriver(context):
-    def acp_api_send_request(driver, message_type, data={}):
-        message = {
-            # this receiver has to be always set as antiCaptchaPlugin
-            "receiver": "antiCaptchaPlugin",
-            # request type, for example setOptions
-            "type": message_type,
-            # merge with additional data
-            **data,
-        }
-        # run JS code in the web page context
-        # precisely we send a standard window.postMessage method
-        return driver.execute_script(
-            """
-        return window.postMessage({});
-        """.format(
-                json.dumps(message)
-            )
-        )
-
-    browser = init_chrome(context)
-
-    # https://anti-captcha.com/clients/settings/apisetup
-    if context.auto_captcha:
-        browser.get("https://antcpt.com/blank.html")
-        acp_api_send_request(
-            browser, "setOptions", {"options": {"antiCaptchaApiKey": context.anticaptcha_api_key}}
-        )
-        time.sleep(1)
-
-    return browser
-
-
-def init_chrome(context: CustomerProfile):
+def init_wedriver(context: CustomerProfile):
     options = webdriver.ChromeOptions()
 
     if context.chrome_profile_path:
         options.add_argument(f"user-data-dir={context.chrome_profile_path}")
     if context.chrome_profile_name:
         options.add_argument(f"profile-directory={context.chrome_profile_name}")
-    if context.auto_captcha:
-        options.add_extension(context.anticaptcha_plugin_path)
 
     ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"
 
@@ -244,7 +210,7 @@ def init_chrome(context: CustomerProfile):
 def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     driver = init_wedriver(context)
     logging.basicConfig(
-        format="%(asctime)s - %(message)s", level=logging.INFO, **context.log_settings
+        format="%(asctime)s - %(message)s", level=logging.INFO, **context.log_settings  # type: ignore
     )
     if context.telegram_token:
         context.updater = Updater(token=context.telegram_token, use_context=True)
@@ -298,10 +264,6 @@ def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
         element = driver.find_element_by_id("txtFecha")
         element.send_keys(context.card_expire_date)
 
-    success = process_captcha(driver, context)
-    if not success:
-        return
-
     return True
 
 
@@ -322,10 +284,6 @@ def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
     # Enter doc number and name
     element = driver.find_element_by_id("txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
-
-    success = process_captcha(driver, context)
-    if not success:
-        return
 
     return True
 
@@ -348,10 +306,6 @@ def solicitud_step2(driver: webdriver, context: CustomerProfile):
     element = driver.find_element_by_id("txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
 
-    success = process_captcha(driver, context)
-    if not success:
-        return
-
     return True
 
 
@@ -373,28 +327,41 @@ def brexit_step2(driver: webdriver, context: CustomerProfile):
     element = driver.find_element_by_id("txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
 
-    success = process_captcha(driver, context)
-    if not success:
-        return
-
     return True
 
 
-def certificados_ue_step2(driver: webdriver, context: CustomerProfile):
+def carta_invitacion_step2(driver: webdriver, context: CustomerProfile):
     # 4. Data form:
     try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtPaisNac")))
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
         logging.error("Timed out waiting for form to load")
         return None
 
-    # Select country
-    select = Select(driver.find_element_by_id("txtPaisNac"))
-    select.select_by_visible_text(context.country)
+    # Select doc type
+    if context.doc_type == DocType.PASSPORT:
+        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+    elif context.doc_type == DocType.DNI:
+        driver.find_element_by_id("rdbTipoDocDni").send_keys(Keys.SPACE)
+
+    # Enter doc number and name
+    element = driver.find_element_by_id("txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name)
+
+    return True
+
+
+def certificados_step2(driver: webdriver, context: CustomerProfile):
+    # 4. Data form:
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPasDdi").send_keys(Keys.SPACE)
+        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
         driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.DNI:
@@ -403,10 +370,6 @@ def certificados_ue_step2(driver: webdriver, context: CustomerProfile):
     # Enter doc number and name
     element = driver.find_element_by_id("txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
-
-    success = process_captcha(driver, context)
-    if not success:
-        return
 
     return True
 
@@ -429,10 +392,6 @@ def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
     element = driver.find_element_by_id("txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
 
-    success = process_captcha(driver, context)
-    if not success:
-        return
-
     return True
 
 
@@ -453,37 +412,45 @@ def body_text(driver: webdriver):
         return ""
 
 
-def process_captcha(driver: webdriver, context: CustomerProfile, partially: bool = False):
-    for i in range(1, 4):
-        if context.auto_captcha:
-            # wait for captcha and proceed:
-            WebDriverWait(driver, CAPTCHA_TIMEOUT).until(
-                lambda x: x.find_element_by_css_selector(".antigate_solver.solved")
+def process_captcha(driver: webdriver, context: CustomerProfile):
+    if context.auto_captcha:
+        try:
+            WebDriverWait(driver, DELAY).until(
+                EC.presence_of_element_located((By.ID, "reCAPTCHA_site_key"))
+            )
+        except TimeoutException:
+            logging.error("Timed out waiting for captcha to load")
+            return None
+
+        if not context.solver:
+            site_key = driver.find_element_by_id("reCAPTCHA_site_key").get_attribute("value")
+            page_action = driver.find_element_by_id("action").get_attribute("value")
+            logging.info("Anticaptcha: site key: " + site_key)
+            logging.info("Anticaptcha: action: " + page_action)
+
+            context.solver = recaptchaV3Proxyless()
+            context.solver.set_verbose(1)
+            context.solver.set_key(context.anticaptcha_api_key)
+            context.solver.set_website_url("https://sede.administracionespublicas.gob.es")
+            context.solver.set_website_key(site_key)
+            context.solver.set_page_action(page_action)
+            context.solver.set_min_score(0.9)
+
+        g_response = context.solver.solve_and_return_solution()
+        if g_response != 0:
+            logging.info("Anticaptcha: g-response: " + g_response)
+            driver.execute_script(
+                f"document.getElementById('g-recaptcha-response').value = '{g_response}'"
             )
         else:
-            logging.info("HEY, FIX CAPTCHA and press ENTER")
-            input()
-            logging.info("OK, Waiting")
-
-        # stop the function upon captcha is solved
-        if partially:
-            return True
-
-        time.sleep(0.3)
-        btn = driver.find_element_by_id("btnEnviar")
-        btn.send_keys(Keys.ENTER)
-
-        time.sleep(0.3)
-        try:
-            WebDriverWait(driver, 7).until(EC.presence_of_element_located((By.ID, "btnConsultar")))
-            break
-        except TimeoutException:
-            logging.error("Captcha loop")
-
-        if i == 3:
-            # Failed to get captcha
-            logging.error("Tries exceeded")
+            logging.info("Anticaptcha: " + context.solver.err_string)
             return None
+    else:
+        logging.info(
+            "HEY, DO SOMETHING HUMANE TO TRICK THE CAPTCHA (select text, move cursor etc.) and press ENTER"
+        )
+        input()
+        logging.info("OK, Waiting")
 
     return True
 
@@ -524,14 +491,7 @@ def solicitar_cita(driver: webdriver, context: CustomerProfile):
     for i in range(REFRESH_PAGE_CYCLES):
         resp_text = body_text(driver)
 
-        if "Por favor, valide el Captcha para poder continuar" in resp_text:
-            success = process_captcha(driver, context, partially=True)
-            if not success:
-                return None
-
-            return solicitar_cita(driver, context)
-
-        elif "Seleccione la oficina donde solicitar la cita" in resp_text:
+        if "Seleccione la oficina donde solicitar la cita" in resp_text:
             logging.info("Towns hit! :)")
 
             # Office selection:
@@ -594,13 +554,17 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         logging.error(e)
         pass
 
-    fast_forward_url = "https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?p={}&tramite={}".format(
-        context.province, context.operation_code
+    fast_forward_url = "https://sede.administracionespublicas.gob.es/icpplustieb/citar?p={}".format(
+        context.province
+    )
+    fast_forward_url2 = "https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?tramite={}".format(
+        context.operation_code
     )
     while True:
         try:
             driver.set_page_load_timeout(300 if context.first_load else 50)
             driver.get(fast_forward_url)
+            driver.get(fast_forward_url2)
         except TimeoutException:
             logging.error("Timed out loading initial page")
             continue
@@ -616,8 +580,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         logging.error("Timed out waiting for Instructions page to load")
         return None
 
-    btn = driver.find_element_by_id("btnEntrar")
-    btn.send_keys(Keys.ENTER)
+    driver.find_element_by_id("btnEntrar").send_keys(Keys.ENTER)
 
     # 4. Data form:
     success = False
@@ -629,13 +592,26 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         success = solicitud_step2(driver, context)
     elif context.operation_code == OperationType.BREXIT:
         success = brexit_step2(driver, context)
-    elif context.operation_code == OperationType.CERTIFICADOS_UE:
-        success = certificados_ue_step2(driver, context)
+    elif context.operation_code == OperationType.CARTA_INVITACION:
+        success = carta_invitacion_step2(driver, context)
+    elif context.operation_code in [
+        OperationType.CERTIFICADOS_UE,
+        OperationType.CERTIFICADOS_NIE_NO_COMUN,
+    ]:
+        success = certificados_step2(driver, context)
     elif context.operation_code == OperationType.AUTORIZACION_DE_REGRESO:
         success = autorizacion_de_regreso_step2(driver, context)
 
     if not success:
         return None
+
+    time.sleep(0.3)
+    driver.find_element_by_id("btnEnviar").send_keys(Keys.ENTER)
+
+    try:
+        WebDriverWait(driver, 7).until(EC.presence_of_element_located((By.ID, "btnConsultar")))
+    except TimeoutException:
+        logging.error("Timed out waiting for Solicitar page to load")
 
     try:
         wait_exact_time(driver, context)
@@ -656,17 +632,14 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
 def cita_selection(driver: webdriver, context: CustomerProfile):
     resp_text = body_text(driver)
 
-    if "Por favor, valide el Captcha para poder continuar" in resp_text:
-        success = process_captcha(driver, context, partially=True)
-        if not success:
-            return None
-
-        return phone_mail(driver, context, retry=True)
-
-    elif "DISPONE DE 5 MINUTOS" in resp_text:
+    if "DISPONE DE 5 MINUTOS" in resp_text:
         logging.info("Cita attempt -> selection hit! :)")
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{datetime.datetime.now()}.png".replace(":", "-"))
+
+        success = process_captcha(driver, context)
+        if not success:
+            return None
 
         try:
             driver.find_elements_by_css_selector("input[type='radio'][name='rdbCita']")[
@@ -683,6 +656,10 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         logging.info("Cita attempt -> selection hit! :)")
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{datetime.datetime.now()}.png".replace(":", "-"))
+
+        success = process_captcha(driver, context)
+        if not success:
+            return None
 
         try:
             slots = driver.find_elements_by_css_selector("#CitaMAP_HORAS tbody [id^=HUECO]")
@@ -703,6 +680,8 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
 
     if "Debe confirmar los datos de la cita asignada" in resp_text:
         logging.info("Cita attempt -> confirmation hit! :)")
+        if context.solver:
+            context.solver.report_correct_recaptcha()
 
         if context.telegram_token:
             dispatcher = context.updater.dispatcher
@@ -788,6 +767,8 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
 
     else:
         logging.info("Cita attempt -> missed confirmation :(")
+        if context.solver:
+            context.solver.report_incorrect_recaptcha()
         if context.save_artifacts:
             driver.save_screenshot(
                 f"failed-confirmation-{datetime.datetime.now()}.png".replace(":", "-")
