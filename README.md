@@ -21,6 +21,8 @@ Procedures:
 - POLICIA-AUTORIZACIÓN DE REGRESO
 - POLICIA-CARTA DE INVITACIÓN
 - POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
+- POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA)
+- POLICIA-CERTIFICADOS Y ASIGNACION NIE
 - POLICIA-CERTIFICADOS Y ASIGNACION NIE (NO COMUNITARIOS)
 - POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
 - POLICÍA-EXP.TARJETA ASOCIADA AL ACUERDO DE RETIRADA CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (BREXIT)
@@ -90,9 +92,9 @@ class CustomerProfile:
 
 * `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if `auto_captcha=False`)
 
-* `auto_captcha` — Should we use Anti-Captcha plugin? For testing purposes, you can disable it and trick reCaptcha by yourself. Do not select a slot or click buttons, just pretend you're a human reading the page (select text, move cursor etc.) and click Enter in the Terminal.
+* `auto_captcha` — Should we use Anti-Captcha plugin? For testing purposes, you can disable it and trick reCaptcha by yourself. Do not select a slot or click buttons, just pretend you're a human reading the page (select text, move cursor etc.) and press Enter in the Terminal.
 
-* `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just click Enter in the Terminal.
+* `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just press Enter in the Terminal.
 
 * `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`
 
@@ -100,7 +102,7 @@ class CustomerProfile:
 
 * `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`).
 
-* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.BREXIT`, `OperationType.CARTA_INVITACION`, `OperationType.CERTIFICADOS_UE`, `OperationType.CERTIFICADOS_NIE_NO_COMUN`, `OperationType.AUTORIZACION_DE_REGRESO`)
+* `operation_code` — Procedure (`OperationType.AUTORIZACION_DE_REGRESO`, `OperationType.BREXIT`, `OperationType.CARTA_INVITACION`, `OperationType.CERTIFICADOS_NIE`, `OperationType.CERTIFICADOS_NIE_NO_COMUN`, `OperationType.CERTIFICADOS_RESIDENCIA`, `OperationType.CERTIFICADOS_UE`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.TOMA_HUELLAS`)
 
 * `doc_type` — `DocType.NIE`, `DocType.PASSPORT` or `DocType.DNI`
 
@@ -118,11 +120,11 @@ class CustomerProfile:
 
 * `email` — Email
 
-* `offices` — Required field for `RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random one.
+* `offices` — Required field for `OperationType.RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `OperationType.TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random one.
 
 **Chrome Profile Persistence**
 
-It should be easier to resolve captcha if you use Chorme Profile with some history, so it's better to preserve browser history between attempts.
+It should be easier to resolve captcha if you use Chrome Profile with some history, so it's better to preserve browser history between attempts.
 
 ```python
         # chrome_profile_path=f"{os.curdir}/chrome_profiles/",  # You can persist Chrome profile between runs, it's good for captcha :)
