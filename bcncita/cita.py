@@ -1,13 +1,14 @@
-import datetime
 import io
 import json
 import logging
 import os
 import random
+import re
 import sys
 import threading
 import time
 from dataclasses import dataclass, field
+from datetime import datetime as dt
 from enum import Enum
 from typing import Any, Optional
 
@@ -164,6 +165,7 @@ class CustomerProfile:
     chrome_driver_path: str = "/usr/local/bin/chromedriver"
     chrome_profile_name: Optional[str] = None
     chrome_profile_path: Optional[str] = None
+    max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
     telegram_token: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
@@ -403,8 +405,7 @@ def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
 def wait_exact_time(driver: webdriver, context: CustomerProfile):
     if context.wait_exact_time:
         WebDriverWait(driver, 1200).until(
-            lambda _x: [datetime.datetime.now().minute, datetime.datetime.now().second]
-            in context.wait_exact_time
+            lambda _x: [dt.now().minute, dt.now().second] in context.wait_exact_time
         )
 
 
@@ -470,9 +471,7 @@ def select_office(driver: webdriver, context: CustomerProfile):
         el = driver.find_element_by_id("idSede")
         select = Select(el)
         if context.save_artifacts:
-            offices_path = os.path.join(
-                os.getcwd(), f"offices-{datetime.datetime.now()}.html".replace(":", "-")
-            )
+            offices_path = os.path.join(os.getcwd(), f"offices-{dt.now()}.html".replace(":", "-"))
             with io.open(offices_path, "w", encoding="utf-8") as f:
                 f.write(el.get_attribute("innerHTML"))
 
@@ -647,7 +646,18 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
     if "DISPONE DE 5 MINUTOS" in resp_text:
         logging.info("Cita attempt -> selection hit! :)")
         if context.save_artifacts:
-            driver.save_screenshot(f"citas-{datetime.datetime.now()}.png".replace(":", "-"))
+            driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
+
+        if context.max_date:
+            pattern = re.compile(r"\d{2}/\d{2}/\d{4}")
+            found = pattern.findall(driver.find_element_by_id("lCita_1").text)
+            if found[0] and dt.strptime(found[0], "%d/%m/%Y") > dt.strptime(
+                context.max_date, "%d/%m/%Y"
+            ):
+                logging.info(
+                    f"The first appt on {found[0]} is later than {context.max_date}, skipping"
+                )
+                return None
 
         success = process_captcha(driver, context)
         if not success:
@@ -667,7 +677,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
     elif "Seleccione una de las siguientes citas disponibles" in resp_text:
         logging.info("Cita attempt -> selection hit! :)")
         if context.save_artifacts:
-            driver.save_screenshot(f"citas-{datetime.datetime.now()}.png".replace(":", "-"))
+            driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
 
         success = process_captcha(driver, context)
         if not success:
@@ -715,7 +725,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                 btn.send_keys(Keys.ENTER)
 
                 resp_text = body_text(driver)
-                ctime = datetime.datetime.now()
+                ctime = dt.now()
 
                 if "CITA CONFIRMADA Y GRABADA" in resp_text:
                     context.bot_result = True
@@ -761,9 +771,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             time.sleep(360)
             threading.Thread(target=shutdown).start()
             if context.save_artifacts:
-                driver.save_screenshot(
-                    f"FINAL-SCREEN-{datetime.datetime.now()}.png".replace(":", "-")
-                )
+                driver.save_screenshot(f"FINAL-SCREEN-{dt.now()}.png".replace(":", "-"))
 
             if context.bot_result:
                 driver.quit()
@@ -782,7 +790,5 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         if context.solver:
             context.solver.report_incorrect_recaptcha()
         if context.save_artifacts:
-            driver.save_screenshot(
-                f"failed-confirmation-{datetime.datetime.now()}.png".replace(":", "-")
-            )
+            driver.save_screenshot(f"failed-confirmation-{dt.now()}.png".replace(":", "-"))
         return None

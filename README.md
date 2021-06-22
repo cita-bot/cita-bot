@@ -73,6 +73,7 @@ class CustomerProfile:
     chrome_driver_path: str = None
     chrome_profile_name: Optional[str] = None
     chrome_profile_path: Optional[str] = None
+    max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
     telegram_token: Optional[str] = None
     wait_exact_time: Optional[list] = None # [[minute, second]]
@@ -88,6 +89,7 @@ class CustomerProfile:
     phone: str
     email: str
     offices: Optional[list] = field(default_factory=list)
+    except_offices: Optional[list] = field(default_factory=list)
 ```
 
 * `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if `auto_captcha=False`)
@@ -97,6 +99,8 @@ class CustomerProfile:
 * `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just press Enter in the Terminal.
 
 * `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`
+
+* `max_date` — Maximium date for appointment in "dd/mm/yyyy" format. Appointments available later than this date will be skipped
 
 * `wait_exact_time` — Set specific time (minute and second) you want it to hit `Solicitar cita` button
 
