@@ -45,7 +45,7 @@ class OperationType(str, Enum):
     CARTA_INVITACION = "4037"  # POLICIA-CARTA DE INVITACIÓN
     CERTIFICADOS_NIE = "4096"  # POLICIA-CERTIFICADOS Y ASIGNACION NIE
     CERTIFICADOS_NIE_NO_COMUN = "4079"  # POLICIA-CERTIFICADOS Y ASIGNACION NIE (NO COMUNITARIOS)
-    CERTIFICADOS_RESIDENCIA = "4049"  # POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA)
+    CERTIFICADOS_RESIDENCIA = "4049"  # POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA) #fmt: off
     CERTIFICADOS_UE = "4038"  # POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD = "4"  # EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
@@ -78,6 +78,7 @@ class Office(str, Enum):
     TERRASSA = "36"  # CNP-COMISARIA TERRASSA, BALDRICH (13)
     VIC = "37"  # CNP-COMISARIA VIC, BISBE MORGADES (4)
     VILADECANS = "25"  # CNP-COMISARIA VILADECANS, AVDA. BALLESTER (2)
+    VILAFRANCA = "46"  # CNP COMISARIA VILAFRANCA DEL PENEDES, Avinguda Ronda del Mar, 109
     VILANOVA = "39"  # CNP-COMISARIA VILANOVA I LA GELTRU, VAPOR (19)
 
     # Tenerife
@@ -445,7 +446,7 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
                 f"document.getElementById('g-recaptcha-response').value = '{g_response}'"
             )
         else:
-            logging.info("Anticaptcha: " + context.solver.err_string)
+            logging.error("Anticaptcha: " + context.solver.err_string)
             return None
     else:
         logging.info(
