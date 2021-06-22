@@ -1,4 +1,5 @@
 import datetime
+import io
 import json
 import logging
 import os
@@ -471,7 +472,7 @@ def select_office(driver: webdriver, context: CustomerProfile):
             offices_path = os.path.join(
                 os.getcwd(), f"offices-{datetime.datetime.now()}.html".replace(":", "-")
             )
-            with open(offices_path, "w") as f:
+            with io.open(offices_path, "w", encoding="utf-8") as f:
                 f.write(el.get_attribute("innerHTML"))
 
         if context.offices:
