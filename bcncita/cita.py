@@ -617,7 +617,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
     if not success:
         return None
 
-    time.sleep(0.3)
+    time.sleep(2)
     driver.find_element_by_id("btnEnviar").send_keys(Keys.ENTER)
 
     try:
