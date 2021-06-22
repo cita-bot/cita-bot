@@ -122,6 +122,8 @@ class CustomerProfile:
 
 * `offices` — Required field for `OperationType.RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `OperationType.TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random one.
 
+* `except_offices` — Select offices you would NOT like to get appointment at.
+
 **Chrome Profile Persistence**
 
 It should be easier to resolve captcha if you use Chrome Profile with some history, so it's better to preserve browser history between attempts.

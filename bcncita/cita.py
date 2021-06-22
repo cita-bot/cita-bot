@@ -156,6 +156,7 @@ class CustomerProfile:
     year_of_birth: Optional[str] = None
     card_expire_date: Optional[str] = None  # "dd/mm/yyyy"
     offices: Optional[list] = field(default_factory=list)
+    except_offices: Optional[list] = field(default_factory=list)
 
     anticaptcha_api_key: Optional[str] = None
     auto_captcha: bool = True
@@ -485,8 +486,13 @@ def select_office(driver: webdriver, context: CustomerProfile):
                     if context.operation_code == OperationType.RECOGIDA_DE_TARJETA:
                         return None
 
-        select.select_by_index(random.randint(0, len(select.options) - 1))
-        return True
+        for i in range(5):
+            select.select_by_index(random.randint(0, len(select.options) - 1))
+            if el.get_attribute("value") not in context.except_offices:  # type: ignore
+                return True
+            continue
+
+        return None
 
 
 def solicitar_cita(driver: webdriver, context: CustomerProfile):
@@ -510,7 +516,7 @@ def solicitar_cita(driver: webdriver, context: CustomerProfile):
 
             res = select_office(driver, context)
             if res is None:
-                time.sleep(5)
+                time.sleep(3)
                 driver.refresh()
                 continue
 
