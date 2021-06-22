@@ -659,6 +659,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                 )
                 return None
 
+        time.sleep(2)
         success = process_captcha(driver, context)
         if not success:
             return None
