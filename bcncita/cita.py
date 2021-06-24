@@ -165,6 +165,7 @@ class CustomerProfile:
     chrome_driver_path: str = "/usr/local/bin/chromedriver"
     chrome_profile_name: Optional[str] = None
     chrome_profile_path: Optional[str] = None
+    min_date: Optional[str] = None  # "dd/mm/yyyy"
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
     telegram_token: Optional[str] = None
@@ -461,6 +462,21 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
     return True
 
 
+def check_appt_dates(driver: webdriver, context: CustomerProfile):
+    pattern = re.compile(r"\d{2}/\d{2}/\d{4}")
+    found = pattern.findall(driver.find_element_by_id("lCita_1").text)[0]
+    if found:
+        date_format = "%d/%m/%Y"
+        appt_date = dt.strptime(found, date_format)
+        if context.max_date and appt_date > dt.strptime(context.max_date, date_format):
+            logging.info(f"The first appt on {found} is later than {context.max_date}, skipping")
+            return None
+        if context.min_date and appt_date < dt.strptime(context.min_date, date_format):
+            logging.info(f"The first appt on {found} is earlier than {context.min_date}, skipping")
+            return None
+    return True
+
+
 def select_office(driver: webdriver, context: CustomerProfile):
     if not context.auto_office:
         speaker.say("MAKE A CHOICE")
@@ -648,16 +664,9 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
 
-        if context.max_date:
-            pattern = re.compile(r"\d{2}/\d{2}/\d{4}")
-            found = pattern.findall(driver.find_element_by_id("lCita_1").text)
-            if found[0] and dt.strptime(found[0], "%d/%m/%Y") > dt.strptime(
-                context.max_date, "%d/%m/%Y"
-            ):
-                logging.info(
-                    f"The first appt on {found[0]} is later than {context.max_date}, skipping"
-                )
-                return None
+        success = check_appt_dates(driver, context)
+        if not success:
+            return None
 
         time.sleep(2)
         success = process_captcha(driver, context)

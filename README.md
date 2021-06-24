@@ -31,7 +31,7 @@ Provinces:
 - Barcelona
 - Santa Cruz de Tenerife
 
-Other provinces are also supported if you leave `offices` empty and that way try and get an appointment in a random one, but if you're required to select a specific office (as in case of `RECOGIDA_DE_TARJETA`), you should figure out office ids for your province from the appropriate page on your own.
+Other provinces are also supported if you leave `offices` empty and that way try and get an appointment in a random one, but if you're required to select a specific office (as in case of `OperationType.RECOGIDA_DE_TARJETA`), you should figure out office ids for your province from the appropriate page on your own.
 
 Installation TL;DR
 -------------------
@@ -64,7 +64,7 @@ Examples
 Options
 --------
 
-```
+```python
 @dataclass
 class CustomerProfile:
     anticaptcha_api_key: Optional[str] = None
@@ -73,6 +73,7 @@ class CustomerProfile:
     chrome_driver_path: str = None
     chrome_profile_name: Optional[str] = None
     chrome_profile_path: Optional[str] = None
+    min_date: Optional[str] = None  # "dd/mm/yyyy"
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
     telegram_token: Optional[str] = None
@@ -98,9 +99,11 @@ class CustomerProfile:
 
 * `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just press Enter in the Terminal.
 
-* `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`
+* `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`. If you do not plan to use Telegram, remove this option.
 
-* `max_date` — Maximium date for appointment in "dd/mm/yyyy" format. Appointments available later than this date will be skipped
+* `min_date` — Minimum date for appointment in "dd/mm/yyyy" format. Appointments available earlier than this date will be skipped. Note, the date is checked only for the first appointment available, not the last one.
+
+* `max_date` — Maximium date for appointment in "dd/mm/yyyy" format. Appointments available later than this date will be skipped.
 
 * `wait_exact_time` — Set specific time (minute and second) you want it to hit `Solicitar cita` button
 
