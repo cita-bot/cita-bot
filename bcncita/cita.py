@@ -462,19 +462,44 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
     return True
 
 
-def check_appt_dates(driver: webdriver, context: CustomerProfile):
+def find_best_date(driver: webdriver, context: CustomerProfile):
+    if not context.min_date and not context.max_date:
+        return 1
+
     pattern = re.compile(r"\d{2}/\d{2}/\d{4}")
-    found = pattern.findall(driver.find_element_by_id("lCita_1").text)[0]
-    if found:
-        date_format = "%d/%m/%Y"
-        appt_date = dt.strptime(found, date_format)
-        if context.max_date and appt_date > dt.strptime(context.max_date, date_format):
-            logging.info(f"The first appt on {found} is later than {context.max_date}, skipping")
-            return None
-        if context.min_date and appt_date < dt.strptime(context.min_date, date_format):
-            logging.info(f"The first appt on {found} is earlier than {context.min_date}, skipping")
-            return None
-    return True
+    date_format = "%d/%m/%Y"
+
+    for i in range(1, 4):
+        try:
+            el = driver.find_element_by_id(f"lCita_{i}")
+            found = pattern.findall(el.text)[0]
+            if found:
+                appt_date = dt.strptime(found, date_format)
+                if (
+                    (
+                        context.min_date
+                        and context.max_date
+                        and appt_date >= dt.strptime(context.min_date, date_format)
+                        and appt_date <= dt.strptime(context.max_date, date_format)
+                    )
+                    or (
+                        context.min_date
+                        and not context.max_date
+                        and appt_date >= dt.strptime(context.min_date, date_format)
+                    )
+                    or (
+                        context.max_date
+                        and not context.min_date
+                        and appt_date <= dt.strptime(context.max_date, date_format)
+                    )
+                ):
+                    return i
+        except Exception as e:
+            logging.error(e)
+            continue
+
+    logging.info(f"Nothing found for dates {context.min_date} - {context.max_date}, skipping")
+    return None
 
 
 def select_office(driver: webdriver, context: CustomerProfile):
@@ -664,8 +689,8 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
 
-        success = check_appt_dates(driver, context)
-        if not success:
+        position = find_best_date(driver, context)
+        if not position:
             return None
 
         time.sleep(2)
@@ -675,7 +700,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
 
         try:
             driver.find_elements_by_css_selector("input[type='radio'][name='rdbCita']")[
-                0
+                position - 1
             ].send_keys(Keys.SPACE)
         except Exception as e:
             logging.error(e)
