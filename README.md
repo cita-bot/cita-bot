@@ -77,6 +77,7 @@ class CustomerProfile:
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
     telegram_token: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
     wait_exact_time: Optional[list] = None # [[minute, second]]
 
     province: Province = Province.BARCELONA
@@ -100,6 +101,8 @@ class CustomerProfile:
 * `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just press Enter in the Terminal.
 
 * `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`. If you do not plan to use Telegram, remove this option.
+
+* `telegram_chat_id` — Telegram chat id for your bot. Can be used along with `telegram_token` to get notified about appointment in case there is no SMS confirmation (sometimes it happens). Chat id can be obtained by sending any message to your bot and checking results at `https://api.telegram.org/bot<TELEGRAM_TOKEN>/getUpdates`
 
 * `min_date` — Minimum date for appointment in "dd/mm/yyyy" format. Appointments available earlier than this date will be skipped.
 

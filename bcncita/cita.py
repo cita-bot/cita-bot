@@ -169,6 +169,7 @@ class CustomerProfile:
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
     telegram_token: Optional[str] = None
+    telegram_chat_id: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
 
     # Internals
@@ -595,6 +596,53 @@ def phone_mail(driver: webdriver, context: CustomerProfile, retry: bool = False)
     return cita_selection(driver, context)
 
 
+def confirm_appointment(driver: webdriver, context: CustomerProfile, bot=None, chat_id=None):
+    driver.find_element_by_id("chkTotal").send_keys(Keys.SPACE)
+    driver.find_element_by_id("enviarCorreo").send_keys(Keys.SPACE)
+
+    btn = driver.find_element_by_id("btnConfirmar")
+    btn.send_keys(Keys.ENTER)
+
+    resp_text = body_text(driver)
+    ctime = dt.now()
+
+    if "CITA CONFIRMADA Y GRABADA" in resp_text:
+        context.bot_result = True
+        code = driver.find_element_by_id("justificanteFinal").text
+        logging.info(f"Justificante cita: {code}")
+        caption = f"Cita confirmed! {code}"
+        if context.save_artifacts:
+            image_name = f"CONFIRMED-CITA-{ctime}.png".replace(":", "-")
+            driver.save_screenshot(image_name)
+            if chat_id:
+                bot.send_photo(
+                    chat_id=chat_id,
+                    photo=open(os.path.join(os.getcwd(), image_name), "rb"),
+                    caption=caption,
+                )
+            btn = driver.find_element_by_id("btnImprimir")
+            btn.send_keys(Keys.ENTER)
+            # Give some time to save apppointment pdf
+            time.sleep(5)
+        elif chat_id:
+            bot.send_message(chat_id=chat_id, text=caption)
+
+        return True
+    elif "Lo sentimos, el código introducido no es correcto" in resp_text:
+        if chat_id:
+            bot.send_message(chat_id=chat_id, text="Incorrect, please try again")
+    else:
+        error_name = f"error-{ctime}.png".replace(":", "-")
+        driver.save_screenshot(error_name)
+        if chat_id:
+            bot.send_photo(
+                chat_id=chat_id, photo=open(os.path.join(os.getcwd(), error_name), "rb"),
+            )
+            bot.send_message(chat_id=chat_id, text="Something went wrong")
+
+    return None
+
+
 def cycle_cita(driver: webdriver, context: CustomerProfile):
     driver.delete_all_cookies()
     try:
@@ -740,71 +788,44 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         if context.solver:
             context.solver.report_correct_recaptcha()
 
+        try:
+            sms_verification = driver.find_element_by_id("txtCodigoVerificacion")
+        except Exception as e:
+            logging.error(e)
+            pass
+
         if context.telegram_token:
-            dispatcher = context.updater.dispatcher
+            if sms_verification:
 
-            def shutdown():
-                context.updater.stop()
-                context.updater.is_idle = False
+                def shutdown():
+                    context.updater.stop()
+                    context.updater.is_idle = False
 
-            def code_received(update, ctx):
-                logging.info(f"Received code: {ctx.args[0]}")
-
-                element = driver.find_element_by_id("txtCodigoVerificacion")
-                element.send_keys(ctx.args[0])
-
-                driver.find_element_by_id("chkTotal").send_keys(Keys.SPACE)
-                driver.find_element_by_id("enviarCorreo").send_keys(Keys.SPACE)
-
-                btn = driver.find_element_by_id("btnConfirmar")
-                btn.send_keys(Keys.ENTER)
-
-                resp_text = body_text(driver)
-                ctime = dt.now()
-
-                if "CITA CONFIRMADA Y GRABADA" in resp_text:
-                    context.bot_result = True
-                    code = driver.find_element_by_id("justificanteFinal").text
-                    logging.info(f"Justificante cita: {code}")
-                    caption = f"Cita confirmed! {code}"
-                    if context.save_artifacts:
-                        image_name = f"CONFIRMED-CITA-{ctime}.png".replace(":", "-")
-                        driver.save_screenshot(image_name)
-                        ctx.bot.send_photo(
-                            chat_id=update.effective_chat.id,
-                            photo=open(os.path.join(os.getcwd(), image_name), "rb"),
-                            caption=caption,
-                        )
-                        btn = driver.find_element_by_id("btnImprimir")
-                        btn.send_keys(Keys.ENTER)
-                    else:
-                        ctx.bot.send_message(chat_id=update.effective_chat.id, text=caption)
-
-                    threading.Thread(target=shutdown).start()
-                    return True
-                elif "Lo sentimos, el código introducido no es correcto" in resp_text:
-                    ctx.bot.send_message(
-                        chat_id=update.effective_chat.id, text="Incorrect, please try again"
+                def code_received(update, ctx):
+                    logging.info(f"Received code: {ctx.args[0]}")
+                    sms_verification = driver.find_element_by_id("txtCodigoVerificacion")
+                    sms_verification.send_keys(ctx.args[0])
+                    result = confirm_appointment(
+                        driver, context, ctx.bot, update.effective_chat.id
                     )
-                else:
-                    error_name = f"error-{ctime}.png".replace(":", "-")
-                    driver.save_screenshot(error_name)
-                    ctx.bot.send_photo(
-                        chat_id=update.effective_chat.id,
-                        photo=open(os.path.join(os.getcwd(), error_name), "rb"),
-                    )
-                    ctx.bot.send_message(
-                        chat_id=update.effective_chat.id, text="Something went wrong"
-                    )
+                    if result:
+                        threading.Thread(target=shutdown).start()
 
-            dispatcher.add_handler(CommandHandler("code", code_received, pass_args=True))
-            context.updater.start_polling(poll_interval=1.0)
+                context.updater.dispatcher.add_handler(
+                    CommandHandler("code", code_received, pass_args=True)
+                )
+                context.updater.start_polling(poll_interval=1.0)
 
-            for i in range(5):
-                speaker.say("ALARM")
-            # Waiting for response 5 minutes
-            time.sleep(360)
-            threading.Thread(target=shutdown).start()
+                for i in range(5):
+                    speaker.say("ALARM")
+                # Waiting for response 5 minutes
+                time.sleep(360)
+                threading.Thread(target=shutdown).start()
+            else:
+                confirm_appointment(
+                    driver, context, context.updater.dispatcher.bot, context.telegram_chat_id
+                )
+
             if context.save_artifacts:
                 driver.save_screenshot(f"FINAL-SCREEN-{dt.now()}.png".replace(":", "-"))
 
@@ -813,8 +834,12 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                 os._exit(0)
             return None
         else:
+            if not sms_verification:
+                confirm_appointment(driver, context)
+
             for i in range(10):
                 speaker.say("ALARM")
+
             logging.info("Press Any button to CLOSE browser")
             input()
             driver.quit()
