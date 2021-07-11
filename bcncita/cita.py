@@ -422,6 +422,10 @@ def body_text(driver: webdriver):
 
 def process_captcha(driver: webdriver, context: CustomerProfile):
     if context.auto_captcha:
+        if not context.anticaptcha_api_key:
+            logging.error("Anticaptcha API key is empty")
+            return None
+
         try:
             WebDriverWait(driver, DELAY).until(
                 EC.presence_of_element_located((By.ID, "reCAPTCHA_site_key"))
@@ -457,6 +461,7 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
         logging.info(
             "HEY, DO SOMETHING HUMANE TO TRICK THE CAPTCHA (select text, move cursor etc.) and press ENTER"
         )
+        speaker.say("TRICK THE CAPTCHA")
         input()
         logging.info("OK, Waiting")
 

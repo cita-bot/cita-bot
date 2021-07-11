@@ -1,4 +1,4 @@
-Cita helper
+Cita helper ![Build Status](https://github.com/cita-bot/cita-bot/actions/workflows/main.yml/badge.svg)
 ===========
 
 This Selenium automatization script helps to catch cita timeslot.

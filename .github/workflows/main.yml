@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: nanasess/setup-chromedriver@master
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        sudo apt-get install espeak
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Lint
+      uses: pre-commit/action@v2.0.3
+    - name: Test
+      run: |
+        export DISPLAY=:99
+        sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+        python test.py
