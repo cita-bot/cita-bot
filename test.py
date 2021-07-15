@@ -22,9 +22,11 @@ class TestBot(unittest.TestCase):
         with self.assertLogs(None, level=logging.INFO) as logs:
             try_cita(context=customer, cycles=1)
 
-        self.assertIn("INFO:root:Towns hit! :)", logs.output)
-        self.assertIn("INFO:root:Email page hit", logs.output)
-        self.assertIn("INFO:root:Cita attempt -> selection hit! :)", logs.output)
+        self.assertIn("INFO:root:\x1b[33m[Attempt 1/1]\x1b[0m", logs.output)
+        self.assertIn("INFO:root:[Step 1/6] Personal info", logs.output)
+        self.assertIn("INFO:root:[Step 2/6] Office selection", logs.output)
+        self.assertIn("INFO:root:[Step 3/6] Contact info", logs.output)
+        self.assertIn("INFO:root:[Step 4/6] Cita attempt -> selection hit!", logs.output)
 
 
 if __name__ == "__main__":

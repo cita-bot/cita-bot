@@ -227,6 +227,7 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     result = False
     for i in range(cycles):
         try:
+            logging.info(f"\033[33m[Attempt {i + 1}/{cycles}]\033[0m")
             result = cycle_cita(driver, context)
         except KeyboardInterrupt:
             raise
@@ -463,7 +464,6 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
         )
         speaker.say("TRICK THE CAPTCHA")
         input()
-        logging.info("OK, Waiting")
 
     return True
 
@@ -511,7 +511,7 @@ def find_best_date(driver: webdriver, context: CustomerProfile):
 def select_office(driver: webdriver, context: CustomerProfile):
     if not context.auto_office:
         speaker.say("MAKE A CHOICE")
-        logging.info("Press Any Key")
+        logging.info("Select office and press ENTER")
         input()
         return True
     else:
@@ -548,7 +548,7 @@ def solicitar_cita(driver: webdriver, context: CustomerProfile):
         resp_text = body_text(driver)
 
         if "Seleccione la oficina donde solicitar la cita" in resp_text:
-            logging.info("Towns hit! :)")
+            logging.info("[Step 2/6] Office selection")
 
             # Office selection:
             time.sleep(0.3)
@@ -574,16 +574,16 @@ def solicitar_cita(driver: webdriver, context: CustomerProfile):
             driver.refresh()
             continue
         else:
-            logging.info("No towns")
+            logging.info("[Step 2/6] Office selection -> No offices")
             return None
 
 
 def phone_mail(driver: webdriver, context: CustomerProfile, retry: bool = False):
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "emailDOS")))
-        logging.info("Email page hit")
+        logging.info("[Step 3/6] Contact info")
     except TimeoutException:
-        logging.error("Timed out waiting for phone/email to load")
+        logging.error("Timed out waiting for contact info page to load")
         return None
 
     if not retry:
@@ -614,7 +614,7 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile, bot=None, c
     if "CITA CONFIRMADA Y GRABADA" in resp_text:
         context.bot_result = True
         code = driver.find_element_by_id("justificanteFinal").text
-        logging.info(f"Justificante cita: {code}")
+        logging.info(f"[Step 6/6] Justificante cita: {code}")
         caption = f"Cita confirmed! {code}"
         if context.save_artifacts:
             image_name = f"CONFIRMED-CITA-{ctime}.png".replace(":", "-")
@@ -673,8 +673,6 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
             continue
         break
     context.first_load = False
-    session_id = driver.get_cookie("JSESSIONID").get("value")
-    logging.info(session_id)
 
     # 3. Instructions page:
     try:
@@ -686,6 +684,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
     driver.find_element_by_id("btnEntrar").send_keys(Keys.ENTER)
 
     # 4. Data form:
+    logging.info("[Step 1/6] Personal info")
     success = False
     if context.operation_code == OperationType.TOMA_HUELLAS:
         success = toma_huellas_step2(driver, context)
@@ -738,7 +737,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
     resp_text = body_text(driver)
 
     if "DISPONE DE 5 MINUTOS" in resp_text:
-        logging.info("Cita attempt -> selection hit! :)")
+        logging.info("[Step 4/6] Cita attempt -> selection hit!")
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
 
@@ -763,7 +762,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         time.sleep(0.5)
         driver.switch_to.alert.accept()
     elif "Seleccione una de las siguientes citas disponibles" in resp_text:
-        logging.info("Cita attempt -> selection hit! :)")
+        logging.info("[Step 4/6] Cita attempt -> selection hit!")
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
 
@@ -782,14 +781,14 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             logging.error(e)
             return None
     else:
-        logging.info("Cita attempt -> missed selection :(")
+        logging.info("[Step 4/6] Cita attempt -> missed selection")
         return None
 
     # 8. Confirmation
     resp_text = body_text(driver)
 
     if "Debe confirmar los datos de la cita asignada" in resp_text:
-        logging.info("Cita attempt -> confirmation hit! :)")
+        logging.info("[Step 5/6] Cita attempt -> confirmation hit!")
         if context.solver:
             context.solver.report_correct_recaptcha()
 
@@ -851,7 +850,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             os._exit(0)
 
     else:
-        logging.info("Cita attempt -> missed confirmation :(")
+        logging.info("[Step 5/6] Cita attempt -> missed confirmation")
         if context.solver:
             context.solver.report_incorrect_recaptcha()
         if context.save_artifacts:
