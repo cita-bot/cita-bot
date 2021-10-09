@@ -31,7 +31,7 @@ Provinces:
 - Barcelona
 - Santa Cruz de Tenerife
 
-Other provinces are also supported if you leave `offices` empty and that way try and get an appointment in a random one, but if you're required to select a specific office (as in case of `OperationType.RECOGIDA_DE_TARJETA`), you should figure out office ids for your province from the appropriate page on your own.
+Other provinces are also supported if you leave `offices` empty and that way try and get an appointment in a random office, but if you're required to select a specific office (as in case of `OperationType.RECOGIDA_DE_TARJETA`), you should figure out office ids for your province from the appropriate page on your own.
 
 Installation TL;DR
 -------------------
@@ -43,6 +43,8 @@ Installation TL;DR
 3. Install Google Chrome.
 
 4. Download [chromedriver](https://chromedriver.chromium.org/downloads) and put it in the PATH (Python dir from step 1 should work).
+
+    4.1. [Windows only] Download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH
 
 5. Get API Key from https://anti-captcha.com ($5 is enough, trust me! :)
 
@@ -96,7 +98,7 @@ class CustomerProfile:
 
 * `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if `auto_captcha=False`)
 
-* `auto_captcha` — Should we use Anti-Captcha plugin? For testing purposes, you can disable it and trick reCaptcha by yourself. Do not select a slot or click buttons, just pretend you're a human reading the page (select text, move cursor etc.) and press Enter in the Terminal.
+* `auto_captcha` — Should we use Anti-Captcha? For testing purposes, you can disable it and trick reCaptcha by yourself. Do not select a slot or click buttons, just pretend you're a human reading the page (select text, move cursor etc.) and press Enter in the Terminal.
 
 * `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just press Enter in the Terminal.
 
@@ -110,7 +112,7 @@ class CustomerProfile:
 
 * `wait_exact_time` — Set specific time (minute and second) you want it to hit `Solicitar cita` button
 
-* `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`).
+* `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`). [Other provinces](https://github.com/cita-bot/cita-bot/blob/6233b2f5f6a639396f393b69b7bc13f5a631fb1a/bcncita/cita.py#L93-L144).
 
 * `operation_code` — Procedure (`OperationType.AUTORIZACION_DE_REGRESO`, `OperationType.BREXIT`, `OperationType.CARTA_INVITACION`, `OperationType.CERTIFICADOS_NIE`, `OperationType.CERTIFICADOS_NIE_NO_COMUN`, `OperationType.CERTIFICADOS_RESIDENCIA`, `OperationType.CERTIFICADOS_UE`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.TOMA_HUELLAS`)
 
@@ -130,7 +132,7 @@ class CustomerProfile:
 
 * `email` — Email
 
-* `offices` — Required field for `OperationType.RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `OperationType.TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random one.
+* `offices` — Required field for `OperationType.RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `OperationType.TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random available. [Supported offices](https://github.com/cita-bot/cita-bot/blob/6233b2f5f6a639396f393b69b7bc13f5a631fb1a/bcncita/cita.py#L58-L89)
 
 * `except_offices` — Select offices you would NOT like to get appointment at.
 
@@ -145,17 +147,13 @@ It should be easier to resolve captcha if you use Chrome Profile with some histo
 
 Try to uncomment these lines in the run script.
 
+Troubleshooting
+---------------
 
-How to fix dependencies
-------------------------
+For Windows, escape paths with additional backslash, e.g. `C:\\Users\\lehne`
 
-1. For Windows, download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH (see step 4 of Installation)
-
-3. Chrome → Firefox — it's possible as well (tune code, paths, browser run arguments, plugin)
-
-
-Generate script for Autofill Chrome extension
----------------------------------------------
+Generate script for Autofill Chrome extension (NOTE: does not work at the moment)
+---------------------------------------------------------------------------------
 
 To generate script for [Autofill](https://chrome.google.com/webstore/detail/autofill/nlmmgnhgdeffjkdckmikfpnddkbbfkkk)
 extension use `--autofill` option. This approach allows you to forget about captcha.

@@ -627,7 +627,7 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile, bot=None, c
                 )
             btn = driver.find_element_by_id("btnImprimir")
             btn.send_keys(Keys.ENTER)
-            # Give some time to save apppointment pdf
+            # Give some time to save appointment pdf
             time.sleep(5)
         elif chat_id:
             bot.send_message(chat_id=chat_id, text=caption)
