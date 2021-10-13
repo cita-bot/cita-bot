@@ -5,13 +5,16 @@ import os
 import random
 import re
 import sys
+import tempfile
 import threading
 import time
+from base64 import b64decode
 from dataclasses import dataclass, field
 from datetime import datetime as dt
 from enum import Enum
 from typing import Any, Optional
 
+from anticaptchaofficial.imagecaptcha import imagecaptcha
 from anticaptchaofficial.recaptchav3proxyless import recaptchaV3Proxyless
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
@@ -177,7 +180,9 @@ class CustomerProfile:
     first_load: Optional[bool] = True  # Wait more on the first load to cache stuff
     log_settings: Optional[dict] = field(default_factory=lambda: {"stream": sys.stdout})
     updater: Any = object()
-    solver: Any = None
+    recaptcha_solver: Any = None
+    image_captcha_solver: Any = None
+    current_solver: Any = None
 
     def __post_init__(self):
         if self.operation_code == OperationType.RECOGIDA_DE_TARJETA:
@@ -192,7 +197,7 @@ def init_wedriver(context: CustomerProfile):
     if context.chrome_profile_name:
         options.add_argument(f"profile-directory={context.chrome_profile_name}")
 
-    ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"
+    ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36"
 
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
@@ -427,37 +432,14 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
             logging.error("Anticaptcha API key is empty")
             return None
 
-        try:
-            WebDriverWait(driver, DELAY).until(
-                EC.presence_of_element_located((By.ID, "reCAPTCHA_site_key"))
-            )
-        except TimeoutException:
-            logging.error("Timed out waiting for captcha to load")
-            return None
-
-        if not context.solver:
-            site_key = driver.find_element_by_id("reCAPTCHA_site_key").get_attribute("value")
-            page_action = driver.find_element_by_id("action").get_attribute("value")
-            logging.info("Anticaptcha: site key: " + site_key)
-            logging.info("Anticaptcha: action: " + page_action)
-
-            context.solver = recaptchaV3Proxyless()
-            context.solver.set_verbose(1)
-            context.solver.set_key(context.anticaptcha_api_key)
-            context.solver.set_website_url("https://sede.administracionespublicas.gob.es")
-            context.solver.set_website_key(site_key)
-            context.solver.set_page_action(page_action)
-            context.solver.set_min_score(0.9)
-
-        g_response = context.solver.solve_and_return_solution()
-        if g_response != 0:
-            logging.info("Anticaptcha: g-response: " + g_response)
-            driver.execute_script(
-                f"document.getElementById('g-recaptcha-response').value = '{g_response}'"
-            )
+        if len(driver.find_elements_by_id("reCAPTCHA_site_key")) > 0:
+            captcha_result = solve_recaptcha(driver, context)
         else:
-            logging.error("Anticaptcha: " + context.solver.err_string)
+            captcha_result = solve_image_captcha(driver, context)
+
+        if not captcha_result:
             return None
+
     else:
         logging.info(
             "HEY, DO SOMETHING HUMANE TO TRICK THE CAPTCHA (select text, move cursor etc.) and press ENTER"
@@ -466,6 +448,62 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
         input()
 
     return True
+
+
+def solve_recaptcha(driver: webdriver, context: CustomerProfile):
+    if not context.recaptcha_solver:
+        site_key = driver.find_element_by_id("reCAPTCHA_site_key").get_attribute("value")
+        page_action = driver.find_element_by_id("action").get_attribute("value")
+        logging.info("Anticaptcha: site key: " + site_key)
+        logging.info("Anticaptcha: action: " + page_action)
+
+        context.recaptcha_solver = recaptchaV3Proxyless()
+        context.recaptcha_solver.set_verbose(1)
+        context.recaptcha_solver.set_key(context.anticaptcha_api_key)
+        context.recaptcha_solver.set_website_url("https://sede.administracionespublicas.gob.es")
+        context.recaptcha_solver.set_website_key(site_key)
+        context.recaptcha_solver.set_page_action(page_action)
+        context.recaptcha_solver.set_min_score(0.9)
+
+    context.current_solver = type(context.recaptcha_solver)
+
+    g_response = context.recaptcha_solver.solve_and_return_solution()
+    if g_response != 0:
+        logging.info("Anticaptcha: g-response: " + g_response)
+        driver.execute_script(
+            f"document.getElementById('g-recaptcha-response').value = '{g_response}'"
+        )
+        return True
+    else:
+        logging.error("Anticaptcha: " + context.recaptcha_solver.err_string)
+        return None
+
+
+def solve_image_captcha(driver: webdriver, context: CustomerProfile):
+    if not context.image_captcha_solver:
+        context.image_captcha_solver = imagecaptcha()
+        context.image_captcha_solver.set_verbose(1)
+        context.image_captcha_solver.set_key(context.anticaptcha_api_key)
+
+    context.current_solver = type(context.image_captcha_solver)
+
+    try:
+        img = driver.find_elements_by_css_selector("img.img-thumbnail")[0]
+        tmp = tempfile.NamedTemporaryFile(delete=False)
+        tmp.write(b64decode(img.get_attribute("src").split(",")[1].strip()))
+        tmp.close()
+
+        captcha_result = context.image_captcha_solver.solve_and_return_solution(tmp.name)
+        if captcha_result != 0:
+            logging.info("Anticaptcha: captcha text: " + captcha_result)
+            element = driver.find_element_by_id("captcha")
+            element.send_keys(captcha_result)
+            return True
+        else:
+            logging.error("Anticaptcha: " + context.image_captcha_solver.err_string)
+            return None
+    finally:
+        os.unlink(tmp.name)
 
 
 def find_best_date(driver: webdriver, context: CustomerProfile):
@@ -625,10 +663,11 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile, bot=None, c
                     photo=open(os.path.join(os.getcwd(), image_name), "rb"),
                     caption=caption,
                 )
-            btn = driver.find_element_by_id("btnImprimir")
-            btn.send_keys(Keys.ENTER)
-            # Give some time to save appointment pdf
-            time.sleep(5)
+            # TODO: fix saving to PDF
+            # btn = driver.find_element_by_id("btnImprimir")
+            # btn.send_keys(Keys.ENTER)
+            # # Give some time to save appointment pdf
+            # time.sleep(5)
         elif chat_id:
             bot.send_message(chat_id=chat_id, text=caption)
 
@@ -650,13 +689,6 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile, bot=None, c
 
 def cycle_cita(driver: webdriver, context: CustomerProfile):
     driver.delete_all_cookies()
-    try:
-        driver.execute_script("window.localStorage.clear();")
-        driver.execute_script("window.sessionStorage.clear();")
-    except Exception as e:
-        logging.error(e)
-        pass
-
     fast_forward_url = "https://sede.administracionespublicas.gob.es/icpplustieb/citar?p={}".format(
         context.province
     )
@@ -667,6 +699,12 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         try:
             driver.set_page_load_timeout(300 if context.first_load else 50)
             driver.get(fast_forward_url)
+            try:
+                driver.execute_script("window.localStorage.clear();")
+                driver.execute_script("window.sessionStorage.clear();")
+            except Exception as e:
+                logging.error(e)
+                pass
             driver.get(fast_forward_url2)
         except TimeoutException:
             logging.error("Timed out loading initial page")
@@ -789,13 +827,14 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
 
     if "Debe confirmar los datos de la cita asignada" in resp_text:
         logging.info("[Step 5/6] Cita attempt -> confirmation hit!")
-        if context.solver:
-            context.solver.report_correct_recaptcha()
+        if context.current_solver == recaptchaV3Proxyless:
+            context.recaptcha_solver.report_correct_recaptcha()
 
         try:
             sms_verification = driver.find_element_by_id("txtCodigoVerificacion")
         except Exception as e:
             logging.error(e)
+            sms_verification = None
             pass
 
         if context.telegram_token:
@@ -851,8 +890,11 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
 
     else:
         logging.info("[Step 5/6] Cita attempt -> missed confirmation")
-        if context.solver:
-            context.solver.report_incorrect_recaptcha()
+        if context.current_solver == recaptchaV3Proxyless:
+            context.recaptcha_solver.report_incorrect_recaptcha()
+        elif context.current_solver == imagecaptcha:
+            context.image_captcha_solver.report_incorrect_image_captcha()
+
         if context.save_artifacts:
             driver.save_screenshot(f"failed-confirmation-{dt.now()}.png".replace(":", "-"))
         return None
