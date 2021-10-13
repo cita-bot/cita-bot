@@ -102,7 +102,7 @@ class CustomerProfile:
 
 * `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just press Enter in the Terminal.
 
-* `chrome_driver_path` — The path where the chromedriver executable is located. For Linux leave it as it is in the example files. For Windows change it to something like: `chrome_driver_path="C:\\Users\\youruser\\PycharmProjects\\cita-bot\\chromedriver.exe" #This is just an example, put there where you saved the program`.
+* `chrome_driver_path` — The path where the chromedriver executable is located. For Linux leave it as it is in the example files. For Windows change it to something like: `chrome_driver_path="C:\\Users\\youruser\\AppData\\Local\\Programs\\Python\\Python38-32\\chromedriver.exe",` This is just an example, enter the path where you saved the program.
 
 * `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`. If you do not plan to use Telegram, remove this option.
 
