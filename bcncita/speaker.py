@@ -33,4 +33,4 @@ def new_speaker():
     for cls in [eSpeakSpeaker, saySpeaker, wSaySpeaker]:
         if cls.is_applicable():
             return cls()
-    raise ValueError("Platform is not supported")
+    raise ValueError("Please download wsay (Windows) or espeak (Linux). See README for more info")

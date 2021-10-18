@@ -579,7 +579,7 @@ def select_office(driver: webdriver, context: CustomerProfile):
         return None
 
 
-def solicitar_cita(driver: webdriver, context: CustomerProfile):
+def office_selection(driver: webdriver, context: CustomerProfile):
     driver.execute_script("enviar('solicitud');")
 
     for i in range(REFRESH_PAGE_CYCLES):
@@ -762,8 +762,8 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         return None
 
     # 5. Solicitar cita:
-    solcitar = solicitar_cita(driver, context)
-    if solcitar is None:
+    selection_result = office_selection(driver, context)
+    if selection_result is None:
         return None
 
     # 6. phone-mail:

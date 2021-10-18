@@ -5,7 +5,7 @@ This Selenium automatization script helps to catch cita timeslot.
 
 **It DOES make a reservation (semi)automatically**
 
-...if you [set up a Telegram bot](https://docs.microsoft.com/en-us/azure/bot-service/bot-service-channel-connect-telegram) and use it for SMS confirmation. Otherwise:
+...if you set up a Telegram bot and use it for SMS confirmation. Otherwise:
 
 Enable your speakers and wait for "ALARM ALARM ALARM" message :) Next you'll have to confirm an appointment via SMS code.
 
@@ -104,7 +104,7 @@ class CustomerProfile:
 
 * `chrome_driver_path` — The path where the chromedriver executable is located. For Linux leave it as it is in the example files. For Windows change it to something like: `chrome_driver_path="C:\\Users\\youruser\\AppData\\Local\\Programs\\Python\\Python38-32\\chromedriver.exe",` This is just an example, enter the path where you saved the program.
 
-* `telegram_token` — Telegram bot token for SMS confirmation. Wait for SMS and confirm appointments with a command `/code 12345`. If you do not plan to use Telegram, remove this option.
+* `telegram_token` — [Set up a Telegram bot](https://docs.microsoft.com/en-us/azure/bot-service/bot-service-channel-connect-telegram) and copypaste it's token here to be able to confirm appointment with SMS when you're away from your computer by sending a command like `/code 12345` to your bot. If you do not plan to use Telegram, remove this option.
 
 * `telegram_chat_id` — Telegram chat id for your bot. Can be used along with `telegram_token` to get notified about appointment in case there is no SMS confirmation (sometimes it happens). Chat id can be obtained by sending any message to your bot and checking results at `https://api.telegram.org/bot<TELEGRAM_TOKEN>/getUpdates`
 
@@ -134,7 +134,7 @@ class CustomerProfile:
 
 * `email` — Email
 
-* `offices` — Required field for `OperationType.RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `OperationType.TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random available. [Supported offices](https://github.com/cita-bot/cita-bot/blob/6233b2f5f6a639396f393b69b7bc13f5a631fb1a/bcncita/cita.py#L58-L89)
+* `offices` — Required field for `OperationType.RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `OperationType.TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random available. [Supported offices](https://github.com/cita-bot/cita-bot/blob/6233b2f5f6a639396f393b69b7bc13f5a631fb1a/bcncita/cita.py#L58-L89).
 
 * `except_offices` — Select offices you would NOT like to get appointment at.
 
