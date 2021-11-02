@@ -39,12 +39,15 @@ Installation TL;DR
 1. Install Python 3.8: https://www.python.org/downloads/release/python-385/
 
 2. `pip install -r requirements.txt`
+2.1 If p.2 does not work, try `pip3 install -r requirements.txt`
 
-3. Install Google Chrome.
+3. Install Google Chrome and check it's version.
 
-4. Download [chromedriver](https://chromedriver.chromium.org/downloads) and put it in the PATH (Python dir from step 1 should work).
+4. Download [chromedriver](https://chromedriver.chromium.org/downloads) of the same version as Google Chrome is and put it in the PATH (Python dir from step 1 should work).
+e.g.: /Users/YourName/documents/cita-bot-master
 
     4.1. [Windows only] Download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH
+    4.1 [MacOs] Download [wsay](https://github.com/cita-bot/cita-bot/archive/refs/heads/master.zip), unzip and put it in the PATH
 
 5. Get API Key from https://anti-captcha.com ($5 is enough, trust me! :)
 
