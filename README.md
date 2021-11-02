@@ -51,6 +51,7 @@ Installation TL;DR
 6. Copy example file and fill your data, save it as `grab_me.py`.
 
 7. Run `python grab_me.py`, follow the voice instructions.
+7.1 If p.7 does not work, run 'python3 grab-me.py'
 
 
 Examples
