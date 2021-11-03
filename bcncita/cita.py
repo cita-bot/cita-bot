@@ -444,7 +444,8 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
         logging.info(
             "HEY, DO SOMETHING HUMANE TO TRICK THE CAPTCHA (select text, move cursor etc.) and press ENTER"
         )
-        speaker.say("TRICK THE CAPTCHA")
+        for i in range(10):
+            speaker.say("ALARM")
         input()
 
     return True
@@ -880,8 +881,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             if not sms_verification:
                 confirm_appointment(driver, context)
 
-            for i in range(10):
-                speaker.say("ALARM")
+            speaker.say("ENTER THE SHORT CODE FROM SMS")
 
             logging.info("Press Any button to CLOSE browser")
             input()

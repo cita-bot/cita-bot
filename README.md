@@ -46,12 +46,13 @@ Installation TL;DR
 
     4.1. [Windows only] Download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH
 
-5. Get API Key from https://anti-captcha.com ($5 is enough, trust me! :)
+5. Copy example file and fill your data, save it as `grab_me.py`.
 
-6. Copy example file and fill your data, save it as `grab_me.py`.
+6. Run `python grab_me.py` or `python3 grab_me.py`, follow the voice instructions.
 
-7. Run `python grab_me.py` or `python3 grab_me.py`, follow the voice instructions.
+### Optional steps:
 
+7. Get API Key from https://anti-captcha.com ($5 is enough, trust me! :) and set `auto_captcha=True`
 
 Examples
 --------
@@ -98,7 +99,7 @@ class CustomerProfile:
 
 * `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if `auto_captcha=False`)
 
-* `auto_captcha` — Should we use Anti-Captcha? For testing purposes, you can disable it and trick reCaptcha by yourself. Do not select a slot or click buttons, just pretend you're a human reading the page (select text, move cursor etc.) and press Enter in the Terminal.
+* `auto_captcha` — Should we use Anti-Captcha? For testing purposes, you can disable it and trick reCaptcha by yourself. While on appointment selection page, do not select a slot or click buttons, just pretend you're a human reading the page (select text, move cursor etc.) and press Enter in the Terminal.
 
 * `auto_office` — Automatic choice of the police station. If `False`, again, select an option in the browser manually, do not click "Accept" or "Enter", just press Enter in the Terminal.
 
