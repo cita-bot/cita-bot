@@ -50,7 +50,7 @@ Installation TL;DR
 
 6. Copy example file and fill your data, save it as `grab_me.py`.
 
-7. Run `python grab_me.py` or `python grab_me.py`, follow the voice instructions.
+7. Run `python grab_me.py` or `python3 grab_me.py`, follow the voice instructions.
 
 
 Examples
