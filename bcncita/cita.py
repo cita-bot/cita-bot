@@ -54,6 +54,7 @@ class OperationType(str, Enum):
     CERTIFICADOS_UE = "4038"  # POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD = "4"  # EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
+    SOLICITUD_ASILO = "4078"  # POLICIA - SOLICITUD ASILO
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
 
 
@@ -323,6 +324,29 @@ def solicitud_step2(driver: webdriver, context: CustomerProfile):
 
     return True
 
+def solicitud_asilo_step2(driver: webdriver, context: CustomerProfile):
+    # Data form:
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
+
+    # Select doc type
+    if context.doc_type == DocType.PASSPORT:
+        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+    elif context.doc_type == DocType.NIE:
+        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+
+    # Enter doc number and name
+    element = driver.find_element_by_id("txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+
+    # Select country
+    select = Select(driver.find_element_by_id("txtPaisNac"))
+    select.select_by_visible_text(context.country)
+
+    return True
 
 def brexit_step2(driver: webdriver, context: CustomerProfile):
     # 4. Data form:
@@ -731,6 +755,8 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
         success = recogida_de_tarjeta_step2(driver, context)
     elif context.operation_code == OperationType.SOLICITUD:
         success = solicitud_step2(driver, context)
+    elif context.operation_code == OperationType.SOLICITUD_ASILO:
+        success = solicitud_asilo_step2(driver, context)
     elif context.operation_code == OperationType.BREXIT:
         success = brexit_step2(driver, context)
     elif context.operation_code == OperationType.CARTA_INVITACION:
