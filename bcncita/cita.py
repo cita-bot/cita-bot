@@ -324,6 +324,7 @@ def solicitud_step2(driver: webdriver, context: CustomerProfile):
 
     return True
 
+
 def solicitud_asilo_step2(driver: webdriver, context: CustomerProfile):
     # Data form:
     try:
@@ -347,6 +348,7 @@ def solicitud_asilo_step2(driver: webdriver, context: CustomerProfile):
     select.select_by_visible_text(context.country)
 
     return True
+
 
 def brexit_step2(driver: webdriver, context: CustomerProfile):
     # 4. Data form:

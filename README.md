@@ -37,7 +37,7 @@ Other provinces are also supported if you leave `offices` empty and that way try
 Installation TL;DR
 -------------------
 
-1. Install Python 3.8: https://www.python.org/downloads/release/python-385/
+1. Install [Python 3.8](https://www.python.org/downloads/release/python-385/).
 
 2. `pip install -r requirements.txt`
 
@@ -45,7 +45,7 @@ Installation TL;DR
 
 4. Download [chromedriver](https://chromedriver.chromium.org/downloads) and put it in the PATH (Python dir from step 1 should work).
 
-    4.1. [Windows only] Download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH
+    4.1. [Windows only] Download [wsay](https://github.com/p-groarke/wsay/releases) and put it in the PATH.
 
 5. Copy example file and fill your data, save it as `grab_me.py`.
 
