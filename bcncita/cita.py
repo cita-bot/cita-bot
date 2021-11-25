@@ -172,6 +172,9 @@ class CustomerProfile:
     save_artifacts: bool = False
     sms_webhook_token: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
+    # "Motivo o tipo de solicitud de la cita" Required for some cases, like SOLICITUD_ASILO
+    # Example for SOLICITUD_ASILO: solicitud de asilo porque el documento caduca
+    reason_or_type: Optional[str] = None
 
     # Internals
     bot_result: bool = False
@@ -660,13 +663,7 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
     element = driver.find_element_by_id("emailDOS")
     element.send_keys(context.email)
 
-        if context.operation_code == OperationType.SOLICITUD_ASILO:
-            # There is a mandatory field: "Motivo o tipo de solicitud de la cita"
-            try:
-                element = driver.find_element_by_id("txtObservaciones")
-                element.send_keys("solicitud de asilo")
-            except Exception as e:
-                logging.error(e)
+        add_reason(driver=driver, context=context)
 
     driver.execute_script("enviar();")
 
@@ -918,3 +915,18 @@ def get_code(context: CustomerProfile):
             return match.group(1)
 
     return None
+
+
+def add_reason(driver: webdriver, context: CustomerProfile):
+    try:
+        if context.operation_code == OperationType.SOLICITUD_ASILO:
+            reason = " "
+            if context.reason_or_type:
+                reason = context.reason_or_type
+            else:
+                logging.warning("reason_or_type field is required")
+            element = driver.find_element_by_id("txtObservaciones")
+            element.send_keys(reason)
+    except Exception as e:
+        logging.error(e)
+        speaker.say("Failed to add a reason")
