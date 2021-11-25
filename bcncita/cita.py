@@ -660,6 +660,14 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
     element = driver.find_element_by_id("emailDOS")
     element.send_keys(context.email)
 
+        if context.operation_code == OperationType.SOLICITUD_ASILO:
+            # There is a mandatory field: "Motivo o tipo de solicitud de la cita"
+            try:
+                element = driver.find_element_by_id("txtObservaciones")
+                element.send_keys("solicitud de asilo")
+            except Exception as e:
+                logging.error(e)
+
     driver.execute_script("enviar();")
 
     return cita_selection(driver, context)
