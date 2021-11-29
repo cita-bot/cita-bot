@@ -9,16 +9,7 @@ if __name__ == "__main__":
         auto_captcha=False,
         auto_office=True,
         chrome_driver_path="/usr/local/bin/chromedriver",
-        # chrome_profile_name="Profile 7",
-        # chrome_profile_path=f"{os.curdir}/chrome_profiles/",
         save_artifacts=True,
-        # telegram_token="... your key here ...",
-        # wait_exact_time = [
-        #     [0, 0], # [minute, second]
-        #     [15, 0],
-        #     [30, 0],
-        #     [45, 0],
-        # ],
         province=Province.BARCELONA,
         operation_code=OperationType.TOMA_HUELLAS,
         doc_type=DocType.PASSPORT,

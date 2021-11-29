@@ -167,8 +167,6 @@ class CustomerProfile:
     auto_captcha: bool = True
     auto_office: bool = True
     chrome_driver_path: str = "/usr/local/bin/chromedriver"
-    chrome_profile_name: Optional[str] = None
-    chrome_profile_path: Optional[str] = None
     min_date: Optional[str] = None  # "dd/mm/yyyy"
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
@@ -192,11 +190,6 @@ class CustomerProfile:
 
 def init_wedriver(context: CustomerProfile):
     options = webdriver.ChromeOptions()
-
-    if context.chrome_profile_path:
-        options.add_argument(f"user-data-dir={context.chrome_profile_path}")
-    if context.chrome_profile_name:
-        options.add_argument(f"profile-directory={context.chrome_profile_name}")
 
     ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36"
 

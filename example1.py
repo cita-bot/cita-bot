@@ -9,16 +9,7 @@ if __name__ == "__main__":
         auto_captcha=False,  # Enable anti-captcha plugin (if False, you have to solve reCaptcha manually and press ENTER in the Terminal)
         auto_office=True,
         chrome_driver_path="/usr/local/bin/chromedriver",
-        # chrome_profile_name="Profile 7",  # Profile name
-        # chrome_profile_path=f"{os.curdir}/chrome_profiles/",  # You can persist Chrome profile between runs, it's good for captcha :)
         save_artifacts=True,  # Record available offices / take available slots screenshot
-        # telegram_token="... your key here ...",  # Your Telegram bot token (sms-confirm cita through a bot using command "/code 12345")
-        # wait_exact_time = [
-        #     [0, 0], # [minute, second]
-        #     [15, 0],
-        #     [30, 0],
-        #     [45, 0],
-        # ],
         province=Province.BARCELONA,
         operation_code=OperationType.RECOGIDA_DE_TARJETA,
         doc_type=DocType.NIE,  # DocType.NIE or DocType.PASSPORT

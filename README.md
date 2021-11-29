@@ -140,17 +140,6 @@ class CustomerProfile:
 
 * `except_offices` — Select offices you would NOT like to get appointment at.
 
-**Chrome Profile Persistence**
-
-It should be easier to resolve captcha if you use Chrome Profile with some history, so it's better to preserve browser history between attempts.
-
-```python
-        # chrome_profile_path=f"{os.curdir}/chrome_profiles/",  # You can persist Chrome profile between runs, it's good for captcha :)
-        # chrome_profile_name="Profile 7",  # Profile name
-```
-
-Try to uncomment these lines in the run script.
-
 Troubleshooting
 ---------------
 
