@@ -6,7 +6,6 @@ import random
 import re
 import sys
 import tempfile
-import threading
 import time
 from base64 import b64decode
 from dataclasses import dataclass, field
@@ -14,6 +13,7 @@ from datetime import datetime as dt
 from enum import Enum
 from typing import Any, Optional
 
+import requests
 from anticaptchaofficial.imagecaptcha import imagecaptcha
 from anticaptchaofficial.recaptchav3proxyless import recaptchaV3Proxyless
 from selenium import webdriver
@@ -23,7 +23,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
-from telegram.ext import CommandHandler, Updater
+from telegram.ext import Updater
 
 from .speaker import new_speaker
 
@@ -170,6 +170,7 @@ class CustomerProfile:
     min_date: Optional[str] = None  # "dd/mm/yyyy"
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
+    sms_webhook_token: Optional[str] = None
     telegram_token: Optional[str] = None
     telegram_chat_id: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
@@ -220,6 +221,9 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     logging.basicConfig(
         format="%(asctime)s - %(message)s", level=logging.INFO, **context.log_settings  # type: ignore
     )
+    if context.sms_webhook_token:
+        delete_message(context.sms_webhook_token)
+
     if context.telegram_token:
         context.updater = Updater(token=context.telegram_token, use_context=True)
     success = False
@@ -659,7 +663,9 @@ def phone_mail(driver: webdriver, context: CustomerProfile, retry: bool = False)
     return cita_selection(driver, context)
 
 
-def confirm_appointment(driver: webdriver, context: CustomerProfile, bot=None, chat_id=None):
+def confirm_appointment(driver: webdriver, context: CustomerProfile):
+    bot = context.updater.dispatcher.bot
+    chat_id = context.telegram_chat_id
     driver.find_element_by_id("chkTotal").send_keys(Keys.SPACE)
     driver.find_element_by_id("enviarCorreo").send_keys(Keys.SPACE)
 
@@ -693,8 +699,9 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile, bot=None, c
 
         return True
     elif "Lo sentimos, el código introducido no es correcto" in resp_text:
+        logging.error("Incorrect code entered")
         if chat_id:
-            bot.send_message(chat_id=chat_id, text="Incorrect, please try again")
+            bot.send_message(chat_id=chat_id, text="Incorrect code entered")
     else:
         error_name = f"error-{ctime}.png".replace(":", "-")
         driver.save_screenshot(error_name)
@@ -859,37 +866,15 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             sms_verification = None
             pass
 
-        if context.telegram_token:
+        if context.sms_webhook_token:
             if sms_verification:
-
-                def shutdown():
-                    context.updater.stop()
-                    context.updater.is_idle = False
-
-                def code_received(update, ctx):
-                    logging.info(f"Received code: {ctx.args[0]}")
+                code = get_code(context)
+                if code:
+                    logging.info(f"Received code: {code}")
                     sms_verification = driver.find_element_by_id("txtCodigoVerificacion")
-                    sms_verification.send_keys(ctx.args[0])
-                    result = confirm_appointment(
-                        driver, context, ctx.bot, update.effective_chat.id
-                    )
-                    if result:
-                        threading.Thread(target=shutdown).start()
+                    sms_verification.send_keys(code)
 
-                context.updater.dispatcher.add_handler(
-                    CommandHandler("code", code_received, pass_args=True)
-                )
-                context.updater.start_polling(poll_interval=1.0)
-
-                for i in range(5):
-                    speaker.say("ALARM")
-                # Waiting for response 5 minutes
-                time.sleep(360)
-                threading.Thread(target=shutdown).start()
-            else:
-                confirm_appointment(
-                    driver, context, context.updater.dispatcher.bot, context.telegram_chat_id
-                )
+            confirm_appointment(driver, context)
 
             if context.save_artifacts:
                 driver.save_screenshot(f"FINAL-SCREEN-{dt.now()}.png".replace(":", "-"))
@@ -919,3 +904,29 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         if context.save_artifacts:
             driver.save_screenshot(f"failed-confirmation-{dt.now()}.png".replace(":", "-"))
         return None
+
+
+def get_messages(sms_webhook_token):
+    url = f"https://webhook.site/token/{sms_webhook_token}/requests?page=1&sorting=newest"
+    return requests.get(url).json()["data"]
+
+
+def delete_message(sms_webhook_token, message_id=""):
+    url = f"https://webhook.site/token/{sms_webhook_token}/request/{message_id}"
+    requests.delete(url)
+
+
+def get_code(context: CustomerProfile):
+    for i in range(60):
+        messages = get_messages(context.sms_webhook_token)
+        if not messages:
+            time.sleep(5)
+            continue
+
+        content = messages[0].get("text_content")
+        match = re.search("CODIGO (.*), DE", content)
+        if match:
+            delete_message(context.sms_webhook_token, messages[0].get("uuid"))
+            return match.group(1)
+
+    return None

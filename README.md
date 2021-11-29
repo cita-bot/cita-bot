@@ -1,13 +1,12 @@
-Cita helper ![Build Status](https://github.com/cita-bot/cita-bot/actions/workflows/main.yml/badge.svg)
+Cita Helper ![Build Status](https://github.com/cita-bot/cita-bot/actions/workflows/main.yml/badge.svg)
 ===========
 
-This Selenium automatization script helps to catch cita timeslot.
-
-**It DOES make a reservation (semi)automatically**
-
-...if you set up a Telegram bot and use it for SMS confirmation. Otherwise:
+This Selenium automatization script helps to catch cita timeslot for Spanish CNP/Extranjería.
 
 Enable your speakers and wait for "ALARM ALARM ALARM" message :) Next you'll have to confirm an appointment via SMS code.
+
+It can make a reservation automatically if you set up anti-captcha, webhooks and IFTTT applet on your phone, read instructions below.
+
 
 Support notes
 -------------
@@ -51,9 +50,13 @@ Installation TL;DR
 
 6. Run `python grab_me.py` or `python3 grab_me.py`, follow the voice instructions.
 
-### Optional steps:
+### Optional steps for automation:
 
-7. Get API Key from https://anti-captcha.com ($5 is enough, trust me! :) and set `auto_captcha=True`
+7. Get API key from https://anti-captcha.com ($5 is enough, trust me! :) and set `auto_captcha=True`.
+
+8. Get API key from https://webhook.site and set it to `sms_webhook_token`.
+
+9. Install [IFTTT](https://ifttt.com/) on your phone and create an applet redirecting SMS having text "CITA PREVIA" to the temporary email you got from https://webhook.site.
 
 Examples
 --------
@@ -80,8 +83,7 @@ class CustomerProfile:
     min_date: Optional[str] = None  # "dd/mm/yyyy"
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
-    telegram_token: Optional[str] = None
-    telegram_chat_id: Optional[str] = None
+    sms_webhook_token: Optional[str] = None
     wait_exact_time: Optional[list] = None # [[minute, second]]
 
     province: Province = Province.BARCELONA
@@ -98,7 +100,7 @@ class CustomerProfile:
     except_offices: Optional[list] = field(default_factory=list)
 ```
 
-* `anticaptcha_api_key` — Anti-captcha.com API KEY (not required if `auto_captcha=False`)
+* `anticaptcha_api_key` — Anti-captcha.com API key (not required if `auto_captcha=False`)
 
 * `auto_captcha` — Should we use Anti-Captcha? For testing purposes, you can disable it and trick reCaptcha by yourself. While on appointment selection page, do not select a slot or click buttons, just pretend you're a human reading the page (select text, move cursor etc.) and press Enter in the Terminal.
 
@@ -106,9 +108,7 @@ class CustomerProfile:
 
 * `chrome_driver_path` — The path where the chromedriver executable is located. For Linux leave it as it is in the example files. For Windows change it to something like: `chrome_driver_path="C:\\Users\\youruser\\AppData\\Local\\Programs\\Python\\Python38-32\\chromedriver.exe",` This is just an example, enter the path where you saved the program.
 
-* `telegram_token` — [Set up a Telegram bot](https://docs.microsoft.com/en-us/azure/bot-service/bot-service-channel-connect-telegram) and copypaste it's token here to be able to confirm appointment with SMS when you're away from your computer by sending a command like `/code 12345` to your bot. If you do not plan to use Telegram, remove this option.
-
-* `telegram_chat_id` — Telegram chat id for your bot. Can be used along with `telegram_token` to get notified about appointment in case there is no SMS confirmation (sometimes it happens). Chat id can be obtained by sending any message to your bot and checking results at `https://api.telegram.org/bot<TELEGRAM_TOKEN>/getUpdates`
+* `sms_webhook_token` — webhook.site API key, used to automate SMS confirmation.
 
 * `min_date` — Minimum date for appointment in "dd/mm/yyyy" format. Appointments available earlier than this date will be skipped.
 
