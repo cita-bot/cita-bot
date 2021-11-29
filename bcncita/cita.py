@@ -23,7 +23,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.wait import WebDriverWait
-from telegram.ext import Updater
 
 from .speaker import new_speaker
 
@@ -171,15 +170,12 @@ class CustomerProfile:
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
     sms_webhook_token: Optional[str] = None
-    telegram_token: Optional[str] = None
-    telegram_chat_id: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
 
     # Internals
     bot_result: bool = False
     first_load: Optional[bool] = True  # Wait more on the first load to cache stuff
     log_settings: Optional[dict] = field(default_factory=lambda: {"stream": sys.stdout})
-    updater: Any = object()
     recaptcha_solver: Any = None
     image_captcha_solver: Any = None
     current_solver: Any = None
@@ -223,9 +219,6 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     )
     if context.sms_webhook_token:
         delete_message(context.sms_webhook_token)
-
-    if context.telegram_token:
-        context.updater = Updater(token=context.telegram_token, use_context=True)
     success = False
     result = False
     for i in range(cycles):
@@ -664,8 +657,6 @@ def phone_mail(driver: webdriver, context: CustomerProfile, retry: bool = False)
 
 
 def confirm_appointment(driver: webdriver, context: CustomerProfile):
-    bot = context.updater.dispatcher.bot
-    chat_id = context.telegram_chat_id
     driver.find_element_by_id("chkTotal").send_keys(Keys.SPACE)
     driver.find_element_by_id("enviarCorreo").send_keys(Keys.SPACE)
 
@@ -679,37 +670,21 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile):
         context.bot_result = True
         code = driver.find_element_by_id("justificanteFinal").text
         logging.info(f"[Step 6/6] Justificante cita: {code}")
-        caption = f"Cita confirmed! {code}"
         if context.save_artifacts:
             image_name = f"CONFIRMED-CITA-{ctime}.png".replace(":", "-")
             driver.save_screenshot(image_name)
-            if chat_id:
-                bot.send_photo(
-                    chat_id=chat_id,
-                    photo=open(os.path.join(os.getcwd(), image_name), "rb"),
-                    caption=caption,
-                )
             # TODO: fix saving to PDF
             # btn = driver.find_element_by_id("btnImprimir")
             # btn.send_keys(Keys.ENTER)
             # # Give some time to save appointment pdf
             # time.sleep(5)
-        elif chat_id:
-            bot.send_message(chat_id=chat_id, text=caption)
 
         return True
     elif "Lo sentimos, el código introducido no es correcto" in resp_text:
         logging.error("Incorrect code entered")
-        if chat_id:
-            bot.send_message(chat_id=chat_id, text="Incorrect code entered")
     else:
         error_name = f"error-{ctime}.png".replace(":", "-")
         driver.save_screenshot(error_name)
-        if chat_id:
-            bot.send_photo(
-                chat_id=chat_id, photo=open(os.path.join(os.getcwd(), error_name), "rb"),
-            )
-            bot.send_message(chat_id=chat_id, text="Something went wrong")
 
     return None
 
