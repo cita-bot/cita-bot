@@ -166,6 +166,8 @@ class CustomerProfile:
     auto_captcha: bool = True
     auto_office: bool = True
     chrome_driver_path: str = "/usr/local/bin/chromedriver"
+    chrome_profile_name: Optional[str] = None
+    chrome_profile_path: Optional[str] = None
     min_date: Optional[str] = None  # "dd/mm/yyyy"
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
@@ -187,6 +189,11 @@ class CustomerProfile:
 
 def init_wedriver(context: CustomerProfile):
     options = webdriver.ChromeOptions()
+
+    if context.chrome_profile_path:
+        options.add_argument(f"user-data-dir={context.chrome_profile_path}")
+    if context.chrome_profile_name:
+        options.add_argument(f"profile-directory={context.chrome_profile_name}")
 
     ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36"
 
@@ -633,7 +640,7 @@ def office_selection(driver: webdriver, context: CustomerProfile):
             return None
 
 
-def phone_mail(driver: webdriver, context: CustomerProfile, retry: bool = False):
+def phone_mail(driver: webdriver, context: CustomerProfile):
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "emailDOS")))
         logging.info("[Step 3/6] Contact info")
@@ -641,15 +648,14 @@ def phone_mail(driver: webdriver, context: CustomerProfile, retry: bool = False)
         logging.error("Timed out waiting for contact info page to load")
         return None
 
-    if not retry:
-        element = driver.find_element_by_id("txtTelefonoCitado")
-        element.send_keys(context.phone)  # phone num
+    element = driver.find_element_by_id("txtTelefonoCitado")
+    element.send_keys(context.phone)
 
-        element = driver.find_element_by_id("emailUNO")
-        element.send_keys(context.email)
+    element = driver.find_element_by_id("emailUNO")
+    element.send_keys(context.email)
 
-        element = driver.find_element_by_id("emailDOS")
-        element.send_keys(context.email)
+    element = driver.find_element_by_id("emailDOS")
+    element.send_keys(context.email)
 
     driver.execute_script("enviar();")
 

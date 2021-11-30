@@ -78,8 +78,6 @@ class CustomerProfile:
     auto_captcha: bool = True
     auto_office: bool = True
     chrome_driver_path: str = None
-    chrome_profile_name: Optional[str] = None
-    chrome_profile_path: Optional[str] = None
     min_date: Optional[str] = None  # "dd/mm/yyyy"
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
@@ -108,11 +106,11 @@ class CustomerProfile:
 
 * `chrome_driver_path` — The path where the chromedriver executable is located. For Linux leave it as it is in the example files. For Windows change it to something like: `chrome_driver_path="C:\\Users\\youruser\\AppData\\Local\\Programs\\Python\\Python38-32\\chromedriver.exe",` This is just an example, enter the path where you saved the program.
 
-* `sms_webhook_token` — webhook.site API key, used to automate SMS confirmation.
-
 * `min_date` — Minimum date for appointment in "dd/mm/yyyy" format. Appointments available earlier than this date will be skipped.
 
 * `max_date` — Maximium date for appointment in "dd/mm/yyyy" format. Appointments available later than this date will be skipped.
+
+* `sms_webhook_token` — webhook.site API key, used to automate SMS confirmation.
 
 * `wait_exact_time` — Set specific time (minute and second) you want it to hit `Solicitar cita` button
 
