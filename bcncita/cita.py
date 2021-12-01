@@ -226,12 +226,44 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     )
     if context.sms_webhook_token:
         delete_message(context.sms_webhook_token)
+
+    operation_category = "icpplus"
+    operation_param = "tramiteGrupo[1]"
+
+    if context.province == Province.BARCELONA:
+        operation_category = "icpplustieb"
+        operation_param = "tramiteGrupo[0]"
+    elif context.province in [
+        Province.ALICANTE,
+        Province.ILLES_BALEARS,
+        Province.LAS_PALMAS,
+        Province.S_CRUZ_TENERIFE,
+    ]:
+        operation_category = "icpco"
+    elif context.province == Province.MADRID:
+        operation_category = "icpplustiem"
+    elif context.province == Province.MÁLAGA:
+        operation_category = "icpco"
+        operation_param = "tramiteGrupo[0]"
+    elif context.province in [
+        Province.MELILLA,
+        Province.SEVILLA,
+    ]:
+        operation_param = "tramiteGrupo[0]"
+
+    fast_forward_url = "https://sede.administracionespublicas.gob.es/{}/citar?p={}".format(
+        operation_category, context.province
+    )
+    fast_forward_url2 = "https://sede.administracionespublicas.gob.es/{}/acInfo?{}={}".format(
+        operation_category, operation_param, context.operation_code
+    )
+
     success = False
     result = False
     for i in range(cycles):
         try:
             logging.info(f"\033[33m[Attempt {i + 1}/{cycles}]\033[0m")
-            result = cycle_cita(driver, context)
+            result = cycle_cita(driver, context, fast_forward_url, fast_forward_url2)
         except KeyboardInterrupt:
             raise
         except TimeoutException:
@@ -695,14 +727,8 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile):
     return None
 
 
-def cycle_cita(driver: webdriver, context: CustomerProfile):
+def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fast_forward_url2):
     driver.delete_all_cookies()
-    fast_forward_url = "https://sede.administracionespublicas.gob.es/icpplustieb/citar?p={}".format(
-        context.province
-    )
-    fast_forward_url2 = "https://sede.administracionespublicas.gob.es/icpplustieb/acInfo?tramite={}".format(
-        context.operation_code
-    )
     while True:
         try:
             driver.set_page_load_timeout(300 if context.first_load else 50)
@@ -726,6 +752,10 @@ def cycle_cita(driver: webdriver, context: CustomerProfile):
     except TimeoutException:
         logging.error("Timed out waiting for Instructions page to load")
         return None
+
+    if os.environ["CITA_TEST"] and context.operation_code == OperationType.TOMA_HUELLAS:
+        logging.info("Instructions page loaded")
+        return True
 
     driver.find_element_by_id("btnEntrar").send_keys(Keys.ENTER)
 
