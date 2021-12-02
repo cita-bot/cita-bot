@@ -753,7 +753,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
         logging.error("Timed out waiting for Instructions page to load")
         return None
 
-    if os.environ["CITA_TEST"] and context.operation_code == OperationType.TOMA_HUELLAS:
+    if os.environ.get("CITA_TEST") and context.operation_code == OperationType.TOMA_HUELLAS:
         logging.info("Instructions page loaded")
         return True
 

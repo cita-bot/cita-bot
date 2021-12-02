@@ -56,7 +56,7 @@ Installation TL;DR
 
 8. Get API key from https://webhook.site and set it to `sms_webhook_token`.
 
-9. Install [IFTTT](https://ifttt.com/) on your phone and create an applet redirecting SMS having text "CITA PREVIA" to the temporary email you got from https://webhook.site.
+9. Install [IFTTT](https://ifttt.com/) or any other automation tool on your phone and create an applet redirecting SMS having text "CITA PREVIA" to the temporary email you got from https://webhook.site.
 
 Examples
 --------
@@ -116,7 +116,7 @@ class CustomerProfile:
 
 * `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`). [Other provinces](https://github.com/cita-bot/cita-bot/blob/6233b2f5f6a639396f393b69b7bc13f5a631fb1a/bcncita/cita.py#L93-L144).
 
-* `operation_code` — Procedure (`OperationType.AUTORIZACION_DE_REGRESO`, `OperationType.BREXIT`, `OperationType.CARTA_INVITACION`, `OperationType.CERTIFICADOS_NIE`, `OperationType.CERTIFICADOS_NIE_NO_COMUN`, `OperationType.CERTIFICADOS_RESIDENCIA`, `OperationType.CERTIFICADOS_UE`, `OperationType.RECOGIDA_DE_TARJETA`, `OperationType.SOLICITUD`, `OperationType.TOMA_HUELLAS`)
+* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`). [All procedures](https://github.com/cita-bot/cita-bot/blob/40589255d1fb5b704132283ce25c262edcacbbdb/bcncita/cita.py#L47-L56).
 
 * `doc_type` — `DocType.NIE`, `DocType.PASSPORT` or `DocType.DNI`
 
