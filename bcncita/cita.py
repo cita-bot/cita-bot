@@ -28,7 +28,6 @@ from .speaker import new_speaker
 
 __all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType", "Office", "Province"]
 
-
 CYCLES = 144
 REFRESH_PAGE_CYCLES = 12
 
@@ -173,7 +172,7 @@ class CustomerProfile:
     sms_webhook_token: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
     # "Motivo o tipo de solicitud de la cita" Required for some cases, like SOLICITUD_ASILO
-    # Example for SOLICITUD_ASILO: solicitud de asilo porque el documento caduca
+    # See blog post:  https://blogextranjeriaprogestion.org/2018/05/14/cita-previa-tramites-asilo-pradillo/
     reason_or_type: Optional[str] = None
 
     # Internals
