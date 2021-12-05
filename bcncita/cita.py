@@ -919,13 +919,8 @@ def get_code(context: CustomerProfile):
 def add_reason(driver: webdriver, context: CustomerProfile):
     try:
         if context.operation_code == OperationType.SOLICITUD_ASILO:
-            reason = " "
-            if context.reason_or_type:
-                reason = context.reason_or_type
-            else:
-                logging.warning("reason_or_type field is required")
             element = driver.find_element_by_id("txtObservaciones")
-            element.send_keys(reason)
+            element.send_keys(context.reason_or_type)
     except Exception as e:
         logging.error(e)
         speaker.say("Failed to add a reason")
