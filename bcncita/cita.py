@@ -923,4 +923,3 @@ def add_reason(driver: webdriver, context: CustomerProfile):
             element.send_keys(context.reason_or_type)
     except Exception as e:
         logging.error(e)
-        speaker.say("Failed to add a reason")
