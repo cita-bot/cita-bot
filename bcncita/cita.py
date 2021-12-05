@@ -173,7 +173,7 @@ class CustomerProfile:
     wait_exact_time: Optional[list] = None  # [[minute, second]]
     # "Motivo o tipo de solicitud de la cita" Required for some cases, like SOLICITUD_ASILO
     # See blog post:  https://blogextranjeriaprogestion.org/2018/05/14/cita-previa-tramites-asilo-pradillo/
-    reason_or_type: Optional[str] = None
+    reason_or_type: str = "solicitud de asilo"
 
     # Internals
     bot_result: bool = False
