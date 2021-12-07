@@ -15,7 +15,6 @@ If you want a support for new procedure or province, open an issue or better a p
 The following things are fully supported at the moment:
 
 Procedures:
-- EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
 - POLICIA - SOLICITUD ASILO
 - POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
 - POLICIA-AUTORIZACIÓN DE REGRESO
@@ -64,9 +63,6 @@ Examples
 * `example1.py` — Recogida de tarjeta
 
 * `example2.py` — Toma de huellas
-
-* `example3.py` — Solicitud de autorizaciones
-
 
 Options
 --------

@@ -52,7 +52,6 @@ class OperationType(str, Enum):
     CERTIFICADOS_RESIDENCIA = "4049"  # POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA) #fmt: off
     CERTIFICADOS_UE = "4038"  # POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
-    SOLICITUD = "4"  # EXTRANJERIA - SOLICITUD DE AUTORIZACIONES
     SOLICITUD_ASILO = "4078"  # POLICIA - SOLICITUD ASILO
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
 
@@ -284,7 +283,6 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
 
 
 def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
-    # 4. Data form:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtFecha")))
     except TimeoutException:
@@ -313,7 +311,6 @@ def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
 
 
 def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
-    # 4. Data form:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
@@ -333,29 +330,7 @@ def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
     return True
 
 
-def solicitud_step2(driver: webdriver, context: CustomerProfile):
-    # Data form:
-    try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
-    except TimeoutException:
-        logging.error("Timed out waiting for form to load")
-        return None
-
-    # Select doc type
-    if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
-    elif context.doc_type == DocType.NIE:
-        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
-
-    # Enter doc number and name
-    element = driver.find_element_by_id("txtIdCitado")
-    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
-
-    return True
-
-
 def solicitud_asilo_step2(driver: webdriver, context: CustomerProfile):
-    # Data form:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
@@ -380,7 +355,6 @@ def solicitud_asilo_step2(driver: webdriver, context: CustomerProfile):
 
 
 def brexit_step2(driver: webdriver, context: CustomerProfile):
-    # 4. Data form:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
@@ -401,7 +375,6 @@ def brexit_step2(driver: webdriver, context: CustomerProfile):
 
 
 def carta_invitacion_step2(driver: webdriver, context: CustomerProfile):
-    # 4. Data form:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
@@ -422,7 +395,6 @@ def carta_invitacion_step2(driver: webdriver, context: CustomerProfile):
 
 
 def certificados_step2(driver: webdriver, context: CustomerProfile):
-    # 4. Data form:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
@@ -445,7 +417,6 @@ def certificados_step2(driver: webdriver, context: CustomerProfile):
 
 
 def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
-    # 4. Data form:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
@@ -746,7 +717,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
         break
     context.first_load = False
 
-    # 3. Instructions page:
+    # 1. Instructions page:
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "btnEntrar")))
     except TimeoutException:
@@ -759,15 +730,13 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
 
     driver.find_element_by_id("btnEntrar").send_keys(Keys.ENTER)
 
-    # 4. Data form:
+    # 2. Personal info:
     logging.info("[Step 1/6] Personal info")
     success = False
     if context.operation_code == OperationType.TOMA_HUELLAS:
         success = toma_huellas_step2(driver, context)
     elif context.operation_code == OperationType.RECOGIDA_DE_TARJETA:
         success = recogida_de_tarjeta_step2(driver, context)
-    elif context.operation_code == OperationType.SOLICITUD:
-        success = solicitud_step2(driver, context)
     elif context.operation_code == OperationType.SOLICITUD_ASILO:
         success = solicitud_asilo_step2(driver, context)
     elif context.operation_code == OperationType.BREXIT:
@@ -801,16 +770,16 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
         logging.error("Timed out waiting for exact time")
         return None
 
-    # 5. Solicitar cita:
+    # 3. Solicitar cita:
     selection_result = office_selection(driver, context)
     if selection_result is None:
         return None
 
-    # 6. phone-mail:
+    # 4. Contact info:
     return phone_mail(driver, context)
 
 
-# 7. Cita selection
+# 5. Cita selection
 def cita_selection(driver: webdriver, context: CustomerProfile):
     resp_text = body_text(driver)
 
@@ -862,7 +831,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         logging.info("[Step 4/6] Cita attempt -> missed selection")
         return None
 
-    # 8. Confirmation
+    # 6. Confirmation
     resp_text = body_text(driver)
 
     if "Debe confirmar los datos de la cita asignada" in resp_text:
