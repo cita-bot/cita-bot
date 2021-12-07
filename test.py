@@ -1,4 +1,5 @@
 import logging
+import os
 import unittest
 
 from bcncita import CustomerProfile, DocType, Office, OperationType, Province, try_cita
@@ -43,4 +44,6 @@ class TestBot(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    if not os.environ.get("CITA_TEST"):
+        os._exit(0)
     unittest.main()

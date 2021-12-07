@@ -116,7 +116,7 @@ class CustomerProfile:
 
 * `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`). [Other provinces](https://github.com/cita-bot/cita-bot/blob/6233b2f5f6a639396f393b69b7bc13f5a631fb1a/bcncita/cita.py#L93-L144).
 
-* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`). [All procedures](https://github.com/cita-bot/cita-bot/blob/40589255d1fb5b704132283ce25c262edcacbbdb/bcncita/cita.py#L47-L56).
+* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`). [All procedures](https://github.com/cita-bot/cita-bot/blob/40589255d1fb5b704132283ce25c262edcacbbdb/bcncita/cita.py#L47-L57).
 
 * `doc_type` — `DocType.NIE`, `DocType.PASSPORT` or `DocType.DNI`
 
@@ -142,6 +142,10 @@ Troubleshooting
 ---------------
 
 For Windows, escape paths with additional backslash, e.g. `C:\\Users\\lehne`
+
+If you feel like the script is being stuck at the office selection page — it's not, it refreshes the page 12 times (maximum allowed) until the office is found and then starts over.
+
+SMTH BROKEN: [Errno 13] — that means the script is unable to write a file to file system, try to adjust permissions for it, or set `save_artifacts=False` to disable saving snapshots for offices/appointments.
 
 Generate script for Autofill Chrome extension (NOTE: does not work at the moment)
 ---------------------------------------------------------------------------------
