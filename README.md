@@ -92,6 +92,7 @@ class CustomerProfile:
     email: str
     offices: Optional[list] = field(default_factory=list)
     except_offices: Optional[list] = field(default_factory=list)
+    reason_or_type: str = "solicitud de asilo"
 ```
 
 * `anticaptcha_api_key` — Anti-captcha.com API key (not required if `auto_captcha=False`)
@@ -133,6 +134,8 @@ class CustomerProfile:
 * `offices` — Required field for `OperationType.RECOGIDA_DE_TARJETA`! If provided, script will try to select the specific police station or end the cycle. For `OperationType.TOMA_HUELLAS` it attempts to select all provided offices one by one, otherwise selects a random available. [Supported offices](https://github.com/cita-bot/cita-bot/blob/6233b2f5f6a639396f393b69b7bc13f5a631fb1a/bcncita/cita.py#L58-L89).
 
 * `except_offices` — Select offices you would NOT like to get appointment at.
+
+* `reason_or_type` — "Motivo o tipo de solicitud de la cita" Required for some cases, like SOLICITUD_ASILO ([see](https://blogextranjeriaprogestion.org/2018/05/14/cita-previa-tramites-asilo-pradillo/))
 
 Troubleshooting
 ---------------

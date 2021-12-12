@@ -662,7 +662,7 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
     element = driver.find_element_by_id("emailDOS")
     element.send_keys(context.email)
 
-        add_reason(driver=driver, context=context)
+    add_reason(driver=driver, context=context)
 
     driver.execute_script("enviar();")
 
