@@ -28,7 +28,6 @@ from .speaker import new_speaker
 
 __all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType", "Office", "Province"]
 
-
 CYCLES = 144
 REFRESH_PAGE_CYCLES = 12
 
@@ -172,6 +171,9 @@ class CustomerProfile:
     save_artifacts: bool = False
     sms_webhook_token: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
+    # "Motivo o tipo de solicitud de la cita" Required for some cases, like SOLICITUD_ASILO
+    # See blog post:  https://blogextranjeriaprogestion.org/2018/05/14/cita-previa-tramites-asilo-pradillo/
+    reason_or_type: str = "solicitud de asilo"
 
     # Internals
     bot_result: bool = False
@@ -660,6 +662,8 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
     element = driver.find_element_by_id("emailDOS")
     element.send_keys(context.email)
 
+    add_reason(driver=driver, context=context)
+
     driver.execute_script("enviar();")
 
     return cita_selection(driver, context)
@@ -910,3 +914,12 @@ def get_code(context: CustomerProfile):
             return match.group(1)
 
     return None
+
+
+def add_reason(driver: webdriver, context: CustomerProfile):
+    try:
+        if context.operation_code == OperationType.SOLICITUD_ASILO:
+            element = driver.find_element_by_id("txtObservaciones")
+            element.send_keys(context.reason_or_type)
+    except Exception as e:
+        logging.error(e)
