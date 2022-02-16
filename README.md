@@ -135,7 +135,7 @@ class CustomerProfile:
 
 * `except_offices` — Select offices you would NOT like to get appointment at.
 
-* `reason_or_type` — "Motivo o tipo de solicitud de la cita" Required for some cases, like SOLICITUD_ASILO ([see](https://blogextranjeriaprogestion.org/2018/05/14/cita-previa-tramites-asilo-pradillo/))
+* `reason_or_type` — "Motivo o tipo de solicitud de la cita". Required for some cases, like `OperationType.SOLICITUD_ASILO` [Related blog post](https://blogextranjeriaprogestion.org/2018/05/14/cita-previa-tramites-asilo-pradillo/)
 
 Troubleshooting
 ---------------

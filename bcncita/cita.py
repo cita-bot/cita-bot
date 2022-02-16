@@ -11,6 +11,7 @@ from base64 import b64decode
 from dataclasses import dataclass, field
 from datetime import datetime as dt
 from enum import Enum
+from json.decoder import JSONDecodeError
 from typing import Any, Optional
 
 import requests
@@ -171,8 +172,6 @@ class CustomerProfile:
     save_artifacts: bool = False
     sms_webhook_token: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
-    # "Motivo o tipo de solicitud de la cita" Required for some cases, like SOLICITUD_ASILO
-    # See blog post:  https://blogextranjeriaprogestion.org/2018/05/14/cita-previa-tramites-asilo-pradillo/
     reason_or_type: str = "solicitud de asilo"
 
     # Internals
@@ -600,7 +599,10 @@ def select_office(driver: webdriver, context: CustomerProfile):
                         return None
 
         for i in range(5):
-            select.select_by_index(random.randint(0, len(select.options) - 1))
+            options = list(filter(lambda o: o.get_attribute("value") != "", select.options))
+            default_count = len(select.options)
+            first_element = 0 if len(options) == default_count else 1
+            select.select_by_index(random.randint(first_element, default_count - 1))
             if el.get_attribute("value") not in context.except_offices:  # type: ignore
                 return True
             continue
@@ -662,7 +664,7 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
     element = driver.find_element_by_id("emailDOS")
     element.send_keys(context.email)
 
-    add_reason(driver=driver, context=context)
+    add_reason(driver, context)
 
     driver.execute_script("enviar();")
 
@@ -891,8 +893,11 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
 
 
 def get_messages(sms_webhook_token):
-    url = f"https://webhook.site/token/{sms_webhook_token}/requests?page=1&sorting=newest"
-    return requests.get(url).json()["data"]
+    try:
+        url = f"https://webhook.site/token/{sms_webhook_token}/requests?page=1&sorting=newest"
+        return requests.get(url).json()["data"]
+    except JSONDecodeError:
+        raise Exception("sms_webhook_token is incorrect")
 
 
 def delete_message(sms_webhook_token, message_id=""):
