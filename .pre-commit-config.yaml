@@ -23,4 +23,5 @@ repos:
     - id: mypy
       name: mypy
       entry: mypy --config-file setup.cfg
-
+      additional_dependencies:
+        - types-requests
