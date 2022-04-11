@@ -445,6 +445,12 @@ def assignacion_nie_step2(driver: webdriver, context: CustomerProfile):
         logging.error("Timed out waiting for form to load")
         return None
 
+    # Select doc type
+    if context.doc_type == DocType.PASSPORT:
+        option = driver.find_element_by_id("rdbTipoDocPas")
+        if option:
+            option.send_keys(Keys.SPACE)
+
     # Enter doc number, name and year of birth
     element = driver.find_element_by_id("txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
