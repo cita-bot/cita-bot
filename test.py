@@ -42,7 +42,11 @@ class TestBot(unittest.TestCase):
             with self.assertLogs(None, level=logging.INFO) as logs:
                 try_cita(context=customer, cycles=1)
 
-            self.assertIn("INFO:root:Instructions page loaded", logs.output)
+            self.assertIn(
+                "INFO:root:Instructions page loaded",
+                logs.output,
+                msg=f"Can't load instructions for province={province}",
+            )
 
 
 if __name__ == "__main__":
