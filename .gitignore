@@ -7,3 +7,4 @@ chrome_profiles/
 *.py[co]
 
 .DS_Store
+chromedriver

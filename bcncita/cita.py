@@ -54,6 +54,7 @@ class OperationType(str, Enum):
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD_ASILO = "4078"  # POLICIA - SOLICITUD ASILO
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
+    ASSIGNACION_NIE = "4031"  # Asignación de N.I.E.
 
 
 class Office(str, Enum):
@@ -251,6 +252,12 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     ]:
         operation_param = "tramiteGrupo[0]"
 
+    if (
+        context.province == Province.ALICANTE
+        and context.operation_code == OperationType.ASSIGNACION_NIE
+    ):
+        operation_param = "tramiteGrupo[1]"
+
     fast_forward_url = "https://sede.administracionespublicas.gob.es/{}/citar?p={}".format(
         operation_category, context.province
     )
@@ -433,6 +440,24 @@ def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
     # Enter doc number, name and year of birth
     element = driver.find_element_by_id("txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+
+    return True
+
+
+def assignacion_nie_step2(driver: webdriver, context: CustomerProfile):
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
+
+    # Enter doc number, name and year of birth
+    element = driver.find_element_by_id("txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+
+    # Select country
+    select = Select(driver.find_element_by_id("txtPaisNac"))
+    select.select_by_visible_text(context.country)
 
     return True
 
@@ -758,6 +783,8 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
         success = certificados_step2(driver, context)
     elif context.operation_code == OperationType.AUTORIZACION_DE_REGRESO:
         success = autorizacion_de_regreso_step2(driver, context)
+    elif context.operation_code == OperationType.ASSIGNACION_NIE:
+        success = assignacion_nie_step2(driver, context)
 
     if not success:
         return None
