@@ -54,7 +54,7 @@ class OperationType(str, Enum):
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD_ASILO = "4078"  # POLICIA - SOLICITUD ASILO
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
-    ASSIGNACION_NIE = "4031"  # Asignación de N.I.E.
+    ASIGNACION_NIE = "4031"  # Asignación de N.I.E.
 
 
 class Office(str, Enum):
@@ -438,7 +438,7 @@ def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
     return True
 
 
-def assignacion_nie_step2(driver: webdriver, context: CustomerProfile):
+def asignaacion_nie_step2(driver: webdriver, context: CustomerProfile):
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
@@ -783,8 +783,8 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
         success = certificados_step2(driver, context)
     elif context.operation_code == OperationType.AUTORIZACION_DE_REGRESO:
         success = autorizacion_de_regreso_step2(driver, context)
-    elif context.operation_code == OperationType.ASSIGNACION_NIE:
-        success = assignacion_nie_step2(driver, context)
+    elif context.operation_code == OperationType.ASIGNACION_NIE:
+        success = asignaacion_nie_step2(driver, context)
 
     if not success:
         return None
