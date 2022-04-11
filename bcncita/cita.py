@@ -252,12 +252,6 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     ]:
         operation_param = "tramiteGrupo[0]"
 
-    if (
-        context.province == Province.ALICANTE
-        and context.operation_code == OperationType.ASSIGNACION_NIE
-    ):
-        operation_param = "tramiteGrupo[1]"
-
     fast_forward_url = "https://sede.administracionespublicas.gob.es/{}/citar?p={}".format(
         operation_category, context.province
     )
