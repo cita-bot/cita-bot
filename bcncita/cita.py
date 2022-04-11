@@ -438,7 +438,7 @@ def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
     return True
 
 
-def asignaacion_nie_step2(driver: webdriver, context: CustomerProfile):
+def asignacion_nie_step2(driver: webdriver, context: CustomerProfile):
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
     except TimeoutException:
@@ -784,7 +784,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
     elif context.operation_code == OperationType.AUTORIZACION_DE_REGRESO:
         success = autorizacion_de_regreso_step2(driver, context)
     elif context.operation_code == OperationType.ASIGNACION_NIE:
-        success = asignaacion_nie_step2(driver, context)
+        success = asignacion_nie_step2(driver, context)
 
     if not success:
         return None
