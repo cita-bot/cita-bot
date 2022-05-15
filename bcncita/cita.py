@@ -251,10 +251,10 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     ]:
         operation_param = "tramiteGrupo[0]"
 
-    fast_forward_url = "https://sede.administracionespublicas.gob.es/{}/citar?p={}".format(
+    fast_forward_url = "https://icp.administracionelectronica.gob.es/{}/citar?p={}".format(
         operation_category, context.province
     )
-    fast_forward_url2 = "https://sede.administracionespublicas.gob.es/{}/acInfo?{}={}".format(
+    fast_forward_url2 = "https://icp.administracionelectronica.gob.es/{}/acInfo?{}={}".format(
         operation_category, operation_param, context.operation_code
     )
 
@@ -488,7 +488,7 @@ def solve_recaptcha(driver: webdriver, context: CustomerProfile):
         context.recaptcha_solver = recaptchaV3Proxyless()
         context.recaptcha_solver.set_verbose(1)
         context.recaptcha_solver.set_key(context.anticaptcha_api_key)
-        context.recaptcha_solver.set_website_url("https://sede.administracionespublicas.gob.es")
+        context.recaptcha_solver.set_website_url("https://icp.administracionelectronica.gob.es")
         context.recaptcha_solver.set_website_key(site_key)
         context.recaptcha_solver.set_page_action(page_action)
         context.recaptcha_solver.set_min_score(0.9)
