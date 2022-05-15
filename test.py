@@ -35,7 +35,9 @@ class TestBot(unittest.TestCase):
 
         for province in Province:
             customer = CustomerProfile(
-                **params, province=province, operation_code=OperationType.TOMA_HUELLAS,
+                **params,
+                province=province,
+                operation_code=OperationType.TOMA_HUELLAS,
             )
             with self.assertLogs(None, level=logging.INFO) as logs:
                 try_cita(context=customer, cycles=1)
