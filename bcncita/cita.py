@@ -285,7 +285,7 @@ def try_cita(context: CustomerProfile, cycles: int = CYCLES):
 
 def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
     try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtFecha")))
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtPaisNac")))
     except TimeoutException:
         logging.error("Timed out waiting for form to load")
         return None
@@ -597,6 +597,7 @@ def select_office(driver: webdriver, context: CustomerProfile):
                     logging.error(e)
                     if context.operation_code == OperationType.RECOGIDA_DE_TARJETA:
                         return None
+            return None
 
         for i in range(5):
             options = list(filter(lambda o: o.get_attribute("value") != "", select.options))
