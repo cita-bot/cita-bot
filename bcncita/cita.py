@@ -54,6 +54,7 @@ class OperationType(str, Enum):
     RECOGIDA_DE_TARJETA = "4036"  # POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
     SOLICITUD_ASILO = "4078"  # POLICIA - SOLICITUD ASILO
     TOMA_HUELLAS = "4010"  # POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
+    ASIGNACION_NIE = "4031"  # Asignación de N.I.E.
 
 
 class Office(str, Enum):
@@ -291,21 +292,21 @@ def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
         return None
 
     # Select country
-    select = Select(driver.find_element_by_id("txtPaisNac"))
+    select = Select(driver.find_element(By.ID, "txtPaisNac"))
     select.select_by_visible_text(context.country)
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
-        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocNie").send_keys(Keys.SPACE)
 
     # Enter doc number and name
-    element = driver.find_element_by_id("txtIdCitado")
+    element = driver.find_element(By.ID, "txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
 
     if context.card_expire_date:
-        element = driver.find_element_by_id("txtFecha")
+        element = driver.find_element(By.ID, "txtFecha")
         element.send_keys(context.card_expire_date)
 
     return True
@@ -320,12 +321,12 @@ def recogida_de_tarjeta_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
-        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocNie").send_keys(Keys.SPACE)
 
     # Enter doc number and name
-    element = driver.find_element_by_id("txtIdCitado")
+    element = driver.find_element(By.ID, "txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
 
     return True
@@ -340,16 +341,16 @@ def solicitud_asilo_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
-        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocNie").send_keys(Keys.SPACE)
 
     # Enter doc number and name
-    element = driver.find_element_by_id("txtIdCitado")
+    element = driver.find_element(By.ID, "txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
 
     # Select country
-    select = Select(driver.find_element_by_id("txtPaisNac"))
+    select = Select(driver.find_element(By.ID, "txtPaisNac"))
     select.select_by_visible_text(context.country)
 
     return True
@@ -364,12 +365,12 @@ def brexit_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
-        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocNie").send_keys(Keys.SPACE)
 
     # Enter doc number and name
-    element = driver.find_element_by_id("txtIdCitado")
+    element = driver.find_element(By.ID, "txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
 
     return True
@@ -384,12 +385,12 @@ def carta_invitacion_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.DNI:
-        driver.find_element_by_id("rdbTipoDocDni").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocDni").send_keys(Keys.SPACE)
 
     # Enter doc number and name
-    element = driver.find_element_by_id("txtIdCitado")
+    element = driver.find_element(By.ID, "txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
 
     return True
@@ -404,14 +405,14 @@ def certificados_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
-        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocNie").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.DNI:
-        driver.find_element_by_id("rdbTipoDocDni").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocDni").send_keys(Keys.SPACE)
 
     # Enter doc number and name
-    element = driver.find_element_by_id("txtIdCitado")
+    element = driver.find_element(By.ID, "txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
 
     return True
@@ -426,13 +427,37 @@ def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
 
     # Select doc type
     if context.doc_type == DocType.PASSPORT:
-        driver.find_element_by_id("rdbTipoDocPas").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.NIE:
-        driver.find_element_by_id("rdbTipoDocNie").send_keys(Keys.SPACE)
+        driver.find_element(By.ID, "rdbTipoDocNie").send_keys(Keys.SPACE)
 
     # Enter doc number, name and year of birth
-    element = driver.find_element_by_id("txtIdCitado")
+    element = driver.find_element(By.ID, "txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+
+    return True
+
+
+def asignacion_nie_step2(driver: webdriver, context: CustomerProfile):
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtIdCitado")))
+    except TimeoutException:
+        logging.error("Timed out waiting for form to load")
+        return None
+
+    # Select doc type
+    if context.doc_type == DocType.PASSPORT:
+        option = driver.find_element(By.ID, "rdbTipoDocPas")
+        if option:
+            option.send_keys(Keys.SPACE)
+
+    # Enter doc number, name and year of birth
+    element = driver.find_element(By.ID, "txtIdCitado")
+    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+
+    # Select country
+    select = Select(driver.find_element(By.ID, "txtPaisNac"))
+    select.select_by_visible_text(context.country)
 
     return True
 
@@ -447,7 +472,7 @@ def wait_exact_time(driver: webdriver, context: CustomerProfile):
 def body_text(driver: webdriver):
     try:
         WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
-        return driver.find_element_by_tag_name("body").text
+        return driver.find_element(By.TAG_NAME, "body").text
     except TimeoutException:
         logging.info("Timed out waiting for body to load")
         return ""
@@ -480,8 +505,8 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
 
 def solve_recaptcha(driver: webdriver, context: CustomerProfile):
     if not context.recaptcha_solver:
-        site_key = driver.find_element_by_id("reCAPTCHA_site_key").get_attribute("value")
-        page_action = driver.find_element_by_id("action").get_attribute("value")
+        site_key = driver.find_element(By.ID, "reCAPTCHA_site_key").get_attribute("value")
+        page_action = driver.find_element(By.ID, "action").get_attribute("value")
         logging.info("Anticaptcha: site key: " + site_key)
         logging.info("Anticaptcha: action: " + page_action)
 
@@ -524,7 +549,7 @@ def solve_image_captcha(driver: webdriver, context: CustomerProfile):
         captcha_result = context.image_captcha_solver.solve_and_return_solution(tmp.name)
         if captcha_result != 0:
             logging.info("Anticaptcha: captcha text: " + captcha_result)
-            element = driver.find_element_by_id("captcha")
+            element = driver.find_element(By.ID, "captcha")
             element.send_keys(captcha_result)
             return True
         else:
@@ -543,7 +568,7 @@ def find_best_date(driver: webdriver, context: CustomerProfile):
 
     for i in range(1, 4):
         try:
-            el = driver.find_element_by_id(f"lCita_{i}")
+            el = driver.find_element(By.ID, f"lCita_{i}")
             found = pattern.findall(el.text)[0]
             if found:
                 appt_date = dt.strptime(found, date_format)
@@ -581,7 +606,7 @@ def select_office(driver: webdriver, context: CustomerProfile):
         input()
         return True
     else:
-        el = driver.find_element_by_id("idSede")
+        el = driver.find_element(By.ID, "idSede")
         select = Select(el)
         if context.save_artifacts:
             offices_path = os.path.join(os.getcwd(), f"offices-{dt.now()}.html".replace(":", "-"))
@@ -635,7 +660,7 @@ def office_selection(driver: webdriver, context: CustomerProfile):
                 driver.refresh()
                 continue
 
-            btn = driver.find_element_by_id("btnSiguiente")
+            btn = driver.find_element(By.ID, "btnSiguiente")
             btn.send_keys(Keys.ENTER)
             return True
         elif "En este momento no hay citas disponibles" in resp_text:
@@ -655,13 +680,13 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
         logging.error("Timed out waiting for contact info page to load")
         return None
 
-    element = driver.find_element_by_id("txtTelefonoCitado")
+    element = driver.find_element(By.ID, "txtTelefonoCitado")
     element.send_keys(context.phone)
 
-    element = driver.find_element_by_id("emailUNO")
+    element = driver.find_element(By.ID, "emailUNO")
     element.send_keys(context.email)
 
-    element = driver.find_element_by_id("emailDOS")
+    element = driver.find_element(By.ID, "emailDOS")
     element.send_keys(context.email)
 
     add_reason(driver, context)
@@ -672,10 +697,10 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
 
 
 def confirm_appointment(driver: webdriver, context: CustomerProfile):
-    driver.find_element_by_id("chkTotal").send_keys(Keys.SPACE)
-    driver.find_element_by_id("enviarCorreo").send_keys(Keys.SPACE)
+    driver.find_element(By.ID, "chkTotal").send_keys(Keys.SPACE)
+    driver.find_element(By.ID, "enviarCorreo").send_keys(Keys.SPACE)
 
-    btn = driver.find_element_by_id("btnConfirmar")
+    btn = driver.find_element(By.ID, "btnConfirmar")
     btn.send_keys(Keys.ENTER)
 
     resp_text = body_text(driver)
@@ -683,13 +708,13 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile):
 
     if "CITA CONFIRMADA Y GRABADA" in resp_text:
         context.bot_result = True
-        code = driver.find_element_by_id("justificanteFinal").text
+        code = driver.find_element(By.ID, "justificanteFinal").text
         logging.info(f"[Step 6/6] Justificante cita: {code}")
         if context.save_artifacts:
             image_name = f"CONFIRMED-CITA-{ctime}.png".replace(":", "-")
             driver.save_screenshot(image_name)
             # TODO: fix saving to PDF
-            # btn = driver.find_element_by_id("btnImprimir")
+            # btn = driver.find_element(By.ID, "btnImprimir")
             # btn.send_keys(Keys.ENTER)
             # # Give some time to save appointment pdf
             # time.sleep(5)
@@ -734,7 +759,7 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
         logging.info("Instructions page loaded")
         return True
 
-    driver.find_element_by_id("btnEntrar").send_keys(Keys.ENTER)
+    driver.find_element(By.ID, "btnEntrar").send_keys(Keys.ENTER)
 
     # 2. Personal info:
     logging.info("[Step 1/6] Personal info")
@@ -758,12 +783,14 @@ def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fa
         success = certificados_step2(driver, context)
     elif context.operation_code == OperationType.AUTORIZACION_DE_REGRESO:
         success = autorizacion_de_regreso_step2(driver, context)
+    elif context.operation_code == OperationType.ASIGNACION_NIE:
+        success = asignacion_nie_step2(driver, context)
 
     if not success:
         return None
 
     time.sleep(2)
-    driver.find_element_by_id("btnEnviar").send_keys(Keys.ENTER)
+    driver.find_element(By.ID, "btnEnviar").send_keys(Keys.ENTER)
 
     try:
         WebDriverWait(driver, 7).until(EC.presence_of_element_located((By.ID, "btnConsultar")))
@@ -846,7 +873,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             context.recaptcha_solver.report_correct_recaptcha()
 
         try:
-            sms_verification = driver.find_element_by_id("txtCodigoVerificacion")
+            sms_verification = driver.find_element(By.ID, "txtCodigoVerificacion")
         except Exception as e:
             logging.error(e)
             sms_verification = None
@@ -857,7 +884,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                 code = get_code(context)
                 if code:
                     logging.info(f"Received code: {code}")
-                    sms_verification = driver.find_element_by_id("txtCodigoVerificacion")
+                    sms_verification = driver.find_element(By.ID, "txtCodigoVerificacion")
                     sms_verification.send_keys(code)
 
             confirm_appointment(driver, context)
@@ -924,7 +951,7 @@ def get_code(context: CustomerProfile):
 def add_reason(driver: webdriver, context: CustomerProfile):
     try:
         if context.operation_code == OperationType.SOLICITUD_ASILO:
-            element = driver.find_element_by_id("txtObservaciones")
+            element = driver.find_element(By.ID, "txtObservaciones")
             element.send_keys(context.reason_or_type)
     except Exception as e:
         logging.error(e)
