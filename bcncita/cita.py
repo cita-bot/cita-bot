@@ -14,6 +14,7 @@ from enum import Enum
 from json.decoder import JSONDecodeError
 from typing import Any, Optional
 
+import backoff
 import requests
 from anticaptchaofficial.imagecaptcha import imagecaptcha
 from anticaptchaofficial.recaptchav3proxyless import recaptchaV3Proxyless
@@ -27,7 +28,16 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from .speaker import new_speaker
 
-__all__ = ["try_cita", "CustomerProfile", "DocType", "OperationType", "Office", "Province"]
+__all__ = [
+    "try_cita",
+    "start_with",
+    "init_wedriver",
+    "CustomerProfile",
+    "DocType",
+    "OperationType",
+    "Office",
+    "Province",
+]
 
 CYCLES = 144
 REFRESH_PAGE_CYCLES = 12
@@ -196,7 +206,7 @@ def init_wedriver(context: CustomerProfile):
     if context.chrome_profile_name:
         options.add_argument(f"profile-directory={context.chrome_profile_name}")
 
-    ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36"
+    ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36"
 
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
@@ -222,6 +232,10 @@ def init_wedriver(context: CustomerProfile):
 
 def try_cita(context: CustomerProfile, cycles: int = CYCLES):
     driver = init_wedriver(context)
+    start_with(driver, context, cycles)
+
+
+def start_with(driver: webdriver, context: CustomerProfile, cycles: int = CYCLES):
     logging.basicConfig(
         format="%(asctime)s - %(message)s", level=logging.INFO, **context.log_settings  # type: ignore
     )
@@ -656,7 +670,7 @@ def office_selection(driver: webdriver, context: CustomerProfile):
 
             res = select_office(driver, context)
             if res is None:
-                time.sleep(3)
+                time.sleep(5)
                 driver.refresh()
                 continue
 
@@ -729,24 +743,45 @@ def confirm_appointment(driver: webdriver, context: CustomerProfile):
     return None
 
 
-def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fast_forward_url2):
-    driver.delete_all_cookies()
-    while True:
+def log_backoff(details):
+    logging.error(f"Unable to load the initial page, backing off {details['wait']:0.1f} seconds")
+
+
+@backoff.on_exception(
+    backoff.constant,
+    TimeoutException,
+    interval=350,
+    max_tries=(10 if os.environ.get("CITA_TEST") else None),
+    on_backoff=log_backoff,
+    logger=None,
+)
+def initial_page(driver: webdriver, context: CustomerProfile, fast_forward_url, fast_forward_url2):
+    if context.first_load:
+        driver.delete_all_cookies()
+
+    driver.set_page_load_timeout(300 if context.first_load else 50)
+    driver.get(fast_forward_url)
+    time.sleep(5)
+    if context.first_load:
         try:
-            driver.set_page_load_timeout(300 if context.first_load else 50)
-            driver.get(fast_forward_url)
-            try:
-                driver.execute_script("window.localStorage.clear();")
-                driver.execute_script("window.sessionStorage.clear();")
-            except Exception as e:
-                logging.error(e)
-                pass
-            driver.get(fast_forward_url2)
-        except TimeoutException:
-            logging.error("Timed out loading initial page")
-            continue
-        break
+            driver.execute_script("window.localStorage.clear();")
+            driver.execute_script("window.sessionStorage.clear();")
+        except Exception as e:
+            logging.error(e)
+            pass
+    driver.get(fast_forward_url2)
+    time.sleep(5)
+
+    resp_text = body_text(driver)
+    if "INTERNET CITA PREVIA" not in resp_text:
+        context.first_load = True
+        raise TimeoutException
+
     context.first_load = False
+
+
+def cycle_cita(driver: webdriver, context: CustomerProfile, fast_forward_url, fast_forward_url2):
+    initial_page(driver, context, fast_forward_url, fast_forward_url2)
 
     # 1. Instructions page:
     try:

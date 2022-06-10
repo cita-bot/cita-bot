@@ -113,7 +113,7 @@ class CustomerProfile:
 
 * `province` — Province name (`Province.BARCELONA`, `Province.S_CRUZ_TENERIFE`). [Other provinces](https://github.com/cita-bot/cita-bot/blob/6233b2f5f6a639396f393b69b7bc13f5a631fb1a/bcncita/cita.py#L93-L144).
 
-* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`). [All procedures](https://github.com/cita-bot/cita-bot/blob/40589255d1fb5b704132283ce25c262edcacbbdb/bcncita/cita.py#L47-L57).
+* `operation_code` — Procedure (`OperationType.TOMA_HUELLAS`). [All procedures](https://github.com/cita-bot/cita-bot/blob/9217b485e5f2ff35ef2ed8083fcc8a4606c8be0a/bcncita/cita.py#L47-L57).
 
 * `doc_type` — `DocType.NIE`, `DocType.PASSPORT` or `DocType.DNI`
 
