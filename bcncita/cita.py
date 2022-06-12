@@ -500,7 +500,7 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
             logging.error("Anticaptcha API key is empty")
             return None
 
-        if len(driver.find_elements_by_id("reCAPTCHA_site_key")) > 0:
+        if len(driver.find_elements(By.ID, "reCAPTCHA_site_key")) > 0:
             captcha_result = solve_recaptcha(driver, context)
         else:
             captcha_result = solve_image_captcha(driver, context)
@@ -557,7 +557,7 @@ def solve_image_captcha(driver: webdriver, context: CustomerProfile):
     context.current_solver = type(context.image_captcha_solver)
 
     try:
-        img = driver.find_elements_by_css_selector("img.img-thumbnail")[0]
+        img = driver.find_elements(By.CSS_SELECTOR, "img.img-thumbnail")[0]
         tmp = tempfile.NamedTemporaryFile(delete=False)
         tmp.write(b64decode(img.get_attribute("src").split(",")[1].strip()))
         tmp.close()
@@ -577,14 +577,14 @@ def solve_image_captcha(driver: webdriver, context: CustomerProfile):
 
 def find_best_date_slots(driver: webdriver, context: CustomerProfile):
     try:
-        els = driver.find_elements_by_css_selector("[id^=lCita_]")
+        els = driver.find_elements(By.CSS_SELECTOR, "[id^=lCita_]")
         dates = sorted([*map(lambda x: x.text, els)])
         best_date = find_best_date(dates, context)
         if best_date:
             return dates.index(best_date) + 1
     except Exception as e:
         logging.error(e)
-        return None
+
     return None
 
 
@@ -871,7 +871,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             return None
 
         try:
-            driver.find_elements_by_css_selector("input[type='radio'][name='rdbCita']")[
+            driver.find_elements(By.CSS_SELECTOR, "input[type='radio'][name='rdbCita']")[
                 position - 1
             ].send_keys(Keys.SPACE)
         except Exception as e:
@@ -887,14 +887,14 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
             driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
 
         try:
-            date_els = driver.find_elements_by_css_selector(
-                "#CitaMAP_HORAS thead [class^=colFecha]"
+            date_els = driver.find_elements(
+                By.CSS_SELECTOR, "#CitaMAP_HORAS thead [class^=colFecha]"
             )
             dates = sorted([*map(lambda x: x.text, date_els)])
             slots: Dict[str, list] = {}
-            slot_table = driver.find_element_by_css_selector("#CitaMAP_HORAS tbody")
-            for row in slot_table.find_elements_by_css_selector("tr"):
-                appt_time = row.find_elements_by_tag_name("th")[0].text
+            slot_table = driver.find_element(By.CSS_SELECTOR, "#CitaMAP_HORAS tbody")
+            for row in slot_table.find_elements(By.CSS_SELECTOR, "tr"):
+                appt_time = row.find_elements(By.TAG_NAME, "th")[0].text
                 if context.min_time:
                     if appt_time < context.min_time:
                         continue
@@ -902,11 +902,13 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
                     if appt_time > context.max_time:
                         break
 
-                for idx, cell in enumerate(row.find_elements_by_tag_name("td")):
+                for idx, cell in enumerate(row.find_elements(By.TAG_NAME, "td")):
                     try:
                         if slots.get(dates[idx]):
                             continue
-                        slot = cell.find_element_by_css_selector("[id^=HUECO]").get_attribute("id")
+                        slot = cell.find_element(By.CSS_SELECTOR, "[id^=HUECO]").get_attribute(
+                            "id"
+                        )
                         slots[dates[idx]] = [slot]
                     except Exception:
                         pass
