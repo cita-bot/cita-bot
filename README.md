@@ -87,7 +87,6 @@ class CustomerProfile:
     name: str
     country: str = "RUSIA"
     year_of_birth: Optional[str] = None
-    card_expire_date: Optional[str] = None  # "dd/mm/yyyy"
     phone: str
     email: str
     offices: Optional[list] = field(default_factory=list)
@@ -124,8 +123,6 @@ class CustomerProfile:
 * `year_of_birth` — Year of birth, like "YYYY"
 
 * `country` — Country (RUSIA by default). Copypaste yours from the appropriate page.
-
-* `card_expire_date` — Card Expiration Date. Probably, it's not important at all, leave it empty.
 
 * `phone` — Phone number, no spaces, like "600000000"
 

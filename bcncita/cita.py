@@ -168,7 +168,6 @@ class CustomerProfile:
     operation_code: OperationType = OperationType.TOMA_HUELLAS
     country: str = "RUSIA"
     year_of_birth: Optional[str] = None
-    card_expire_date: Optional[str] = None  # "dd/mm/yyyy"
     offices: Optional[list] = field(default_factory=list)
     except_offices: Optional[list] = field(default_factory=list)
 
@@ -320,10 +319,6 @@ def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
     # Enter doc number and name
     element = driver.find_element(By.ID, "txtIdCitado")
     element.send_keys(context.doc_value, Keys.TAB, context.name)
-
-    if context.card_expire_date:
-        element = driver.find_element(By.ID, "txtPaisNac")
-        element.send_keys(context.card_expire_date)
 
     return True
 
