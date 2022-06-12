@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime as dt
 from enum import Enum
 from json.decoder import JSONDecodeError
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import backoff
 import requests
@@ -180,6 +180,8 @@ class CustomerProfile:
     chrome_profile_path: Optional[str] = None
     min_date: Optional[str] = None  # "dd/mm/yyyy"
     max_date: Optional[str] = None  # "dd/mm/yyyy"
+    min_time: Optional[str] = None  # "hh:mm"
+    max_time: Optional[str] = None  # "hh:mm"
     save_artifacts: bool = False
     sms_webhook_token: Optional[str] = None
     wait_exact_time: Optional[list] = None  # [[minute, second]]
@@ -300,7 +302,7 @@ def start_with(driver: webdriver, context: CustomerProfile, cycles: int = CYCLES
 
 def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
     try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtFecha")))
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "txtPaisNac")))
     except TimeoutException:
         logging.error("Timed out waiting for form to load")
         return None
@@ -320,7 +322,7 @@ def toma_huellas_step2(driver: webdriver, context: CustomerProfile):
     element.send_keys(context.doc_value, Keys.TAB, context.name)
 
     if context.card_expire_date:
-        element = driver.find_element(By.ID, "txtFecha")
+        element = driver.find_element(By.ID, "txtPaisNac")
         element.send_keys(context.card_expire_date)
 
     return True
@@ -573,43 +575,46 @@ def solve_image_captcha(driver: webdriver, context: CustomerProfile):
         os.unlink(tmp.name)
 
 
-def find_best_date(driver: webdriver, context: CustomerProfile):
+def find_best_date_slots(driver: webdriver, context: CustomerProfile):
+    try:
+        els = driver.find_elements_by_css_selector("[id^=lCita_]")
+        dates = sorted([*map(lambda x: x.text, els)])
+        best_date = find_best_date(dates, context)
+        if best_date:
+            return dates.index(best_date) + 1
+    except Exception as e:
+        logging.error(e)
+        return None
+    return None
+
+
+def find_best_date(dates, context: CustomerProfile):
     if not context.min_date and not context.max_date:
-        return 1
+        return dates[0]
 
     pattern = re.compile(r"\d{2}/\d{2}/\d{4}")
     date_format = "%d/%m/%Y"
 
-    for i in range(1, 4):
+    for date in dates:
         try:
-            el = driver.find_element(By.ID, f"lCita_{i}")
-            found = pattern.findall(el.text)[0]
+            found = pattern.findall(date)[0]
             if found:
                 appt_date = dt.strptime(found, date_format)
-                if (
-                    (
-                        context.min_date
-                        and context.max_date
-                        and appt_date >= dt.strptime(context.min_date, date_format)
-                        and appt_date <= dt.strptime(context.max_date, date_format)
-                    )
-                    or (
-                        context.min_date
-                        and not context.max_date
-                        and appt_date >= dt.strptime(context.min_date, date_format)
-                    )
-                    or (
-                        context.max_date
-                        and not context.min_date
-                        and appt_date <= dt.strptime(context.max_date, date_format)
-                    )
-                ):
-                    return i
+                if context.min_date:
+                    if appt_date < dt.strptime(context.min_date, date_format):
+                        continue
+                if context.max_date:
+                    if appt_date > dt.strptime(context.max_date, date_format):
+                        continue
+
+                return date
         except Exception as e:
             logging.error(e)
             continue
 
-    logging.info(f"Nothing found for dates {context.min_date} - {context.max_date}, skipping")
+    logging.info(
+        f"Nothing found for dates {context.min_date} - {context.max_date}, {context.min_time} - {context.max_time}, skipping"
+    )
     return None
 
 
@@ -856,7 +861,7 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
 
-        position = find_best_date(driver, context)
+        position = find_best_date_slots(driver, context)
         if not position:
             return None
 
@@ -881,17 +886,43 @@ def cita_selection(driver: webdriver, context: CustomerProfile):
         if context.save_artifacts:
             driver.save_screenshot(f"citas-{dt.now()}.png".replace(":", "-"))
 
-        success = process_captcha(driver, context)
-        if not success:
-            return None
-
         try:
-            slots = driver.find_elements_by_css_selector("#CitaMAP_HORAS tbody [id^=HUECO]")
-            slot_ids = sorted([*map(lambda x: x.get_attribute("id"), slots)])
-            if slot_ids:
-                slot = slot_ids[0]
-                driver.execute_script(f"confirmarHueco({{id: '{slot}'}}, {slot[5:]});")
-                driver.switch_to.alert.accept()
+            date_els = driver.find_elements_by_css_selector(
+                "#CitaMAP_HORAS thead [class^=colFecha]"
+            )
+            dates = sorted([*map(lambda x: x.text, date_els)])
+            slots: Dict[str, list] = {}
+            slot_table = driver.find_element_by_css_selector("#CitaMAP_HORAS tbody")
+            for row in slot_table.find_elements_by_css_selector("tr"):
+                appt_time = row.find_elements_by_tag_name("th")[0].text
+                if context.min_time:
+                    if appt_time < context.min_time:
+                        continue
+                if context.max_time:
+                    if appt_time > context.max_time:
+                        break
+
+                for idx, cell in enumerate(row.find_elements_by_tag_name("td")):
+                    try:
+                        if slots.get(dates[idx]):
+                            continue
+                        slot = cell.find_element_by_css_selector("[id^=HUECO]").get_attribute("id")
+                        slots[dates[idx]] = [slot]
+                    except Exception:
+                        pass
+
+            best_date = find_best_date(sorted(slots), context)
+            if not best_date:
+                return None
+            slot = slots[best_date][0]
+
+            time.sleep(2)
+            success = process_captcha(driver, context)
+            if not success:
+                return None
+
+            driver.execute_script(f"confirmarHueco({{id: '{slot}'}}, {slot[5:]});")
+            driver.switch_to.alert.accept()
         except Exception as e:
             logging.error(e)
             return None
