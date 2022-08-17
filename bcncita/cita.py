@@ -445,9 +445,9 @@ def autorizacion_de_regreso_step2(driver: webdriver, context: CustomerProfile):
     elif context.doc_type == DocType.NIE:
         driver.find_element(By.ID, "rdbTipoDocNie").send_keys(Keys.SPACE)
 
-    # Enter doc number, name and year of birth
+    # Enter doc number and name
     element = driver.find_element(By.ID, "txtIdCitado")
-    element.send_keys(context.doc_value, Keys.TAB, context.name, Keys.TAB, context.year_of_birth)
+    element.send_keys(context.doc_value, Keys.TAB, context.name)
 
     return True
 
@@ -500,8 +500,10 @@ def process_captcha(driver: webdriver, context: CustomerProfile):
 
         if len(driver.find_elements(By.ID, "reCAPTCHA_site_key")) > 0:
             captcha_result = solve_recaptcha(driver, context)
-        else:
+        elif len(driver.find_elements(By.CSS_SELECTOR, "img.img-thumbnail")) > 0:
             captcha_result = solve_image_captcha(driver, context)
+        else:
+            captcha_result = True
 
         if not captcha_result:
             return None
@@ -691,7 +693,9 @@ def office_selection(driver: webdriver, context: CustomerProfile):
 
 def phone_mail(driver: webdriver, context: CustomerProfile):
     try:
-        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.ID, "emailDOS")))
+        WebDriverWait(driver, DELAY).until(
+            EC.presence_of_element_located((By.ID, "txtTelefonoCitado"))
+        )
         logging.info("[Step 3/6] Contact info")
     except TimeoutException:
         logging.error("Timed out waiting for contact info page to load")
@@ -700,11 +704,14 @@ def phone_mail(driver: webdriver, context: CustomerProfile):
     element = driver.find_element(By.ID, "txtTelefonoCitado")
     element.send_keys(context.phone)
 
-    element = driver.find_element(By.ID, "emailUNO")
-    element.send_keys(context.email)
+    try:
+        element = driver.find_element(By.ID, "emailUNO")
+        element.send_keys(context.email)
 
-    element = driver.find_element(By.ID, "emailDOS")
-    element.send_keys(context.email)
+        element = driver.find_element(By.ID, "emailDOS")
+        element.send_keys(context.email)
+    except Exception:
+        pass
 
     add_reason(driver, context)
 
@@ -763,6 +770,8 @@ def initial_page(driver: webdriver, context: CustomerProfile, fast_forward_url, 
         driver.delete_all_cookies()
 
     driver.set_page_load_timeout(300 if context.first_load else 50)
+    # Fix chromedriver 103 bug
+    time.sleep(1)
     driver.get(fast_forward_url)
     time.sleep(5)
     if context.first_load:
