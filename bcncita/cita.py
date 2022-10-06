@@ -402,6 +402,8 @@ def carta_invitacion_step2(driver: webdriver, context: CustomerProfile):
         driver.find_element(By.ID, "rdbTipoDocPas").send_keys(Keys.SPACE)
     elif context.doc_type == DocType.DNI:
         driver.find_element(By.ID, "rdbTipoDocDni").send_keys(Keys.SPACE)
+    elif context.doc_type == DocType.NIE:
+        driver.find_element(By.ID, "rdbTipoDocNie").send_keys(Keys.SPACE)
 
     # Enter doc number and name
     element = driver.find_element(By.ID, "txtIdCitado")
