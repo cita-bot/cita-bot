@@ -696,7 +696,7 @@ def office_selection(driver: webdriver, context: CustomerProfile):
             continue
         else:
             logging.info("[Step 2/6] Office selection -> No offices")
-            sleeping_time = rnd.randint(5,20)
+            sleeping_time = random.randint(5,20)
             print('Wait {} sec'.format(sleeping_time))
             time.sleep(sleeping_time) # Wait "sleeping_time" seconds between cycles if no office found or else will be temporarily blocked (for ~5m)
             return None
