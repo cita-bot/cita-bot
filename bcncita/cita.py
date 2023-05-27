@@ -786,8 +786,9 @@ def initial_page(driver: webdriver, context: CustomerProfile, fast_forward_url, 
     driver.get(fast_forward_url2)
     time.sleep(5)
 
-    resp_text = body_text(driver)
-    if "INTERNET CITA PREVIA" not in resp_text:
+    try:
+        WebDriverWait(driver, DELAY).until(EC.presence_of_element_located((By.CLASS_NAME, "show_code")))
+    except TimeoutException:
         context.first_load = True
         raise TimeoutException
 
