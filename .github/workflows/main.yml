@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3  # Updated to v3
     - uses: nanasess/setup-chromedriver@master
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4  # Updated to v4
       with:
-        python-version: 3.10
+        python-version: '3.10'  # Ensure the version is quoted
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -25,7 +25,7 @@ jobs:
         sudo apt-get install espeak
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint
-      uses: pre-commit/action@v2.0.3
+      uses: pre-commit/action@v3.0.0  # Updated to v3.0.0
     - name: Test
       run: |
         export DISPLAY=:99
