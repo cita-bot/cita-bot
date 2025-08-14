@@ -23,7 +23,7 @@ Procedures:
 - POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA)
 - POLICIA-CERTIFICADOS Y ASIGNACION NIE
 - POLICIA-CERTIFICADOS Y ASIGNACION NIE (NO COMUNITARIOS)
-- POLICIA-TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
+  - POLICIA TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN
 - POLICÍA-EXP.TARJETA ASOCIADA AL ACUERDO DE RETIRADA CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (BREXIT)
 
 Provinces:
@@ -78,20 +78,26 @@ class CustomerProfile:
     max_date: Optional[str] = None  # "dd/mm/yyyy"
     save_artifacts: bool = False
     sms_webhook_token: Optional[str] = None
-    wait_exact_time: Optional[list] = None # [[minute, second]]
+    wait_exact_time: Optional[list] =  None # [[minute, second]]
 
-    province: Province = Province.BARCELONA
-    operation_code: OperationType = OperationType.TOMA_HUELLAS
+    province: Province = Province.BALEARIC ISLANDS
+    operation_code: OperationType = OperationType.
     doc_type: DocType
-    doc_value: str  # Passport? "123123123"; Nie? "Y1111111M"
-    name: str
-    country: str = "RUSIA"
-    year_of_birth: Optional[str] = None
-    phone: str
-    email: str
+    doc_value: str Nie? "Y237104B"
+    name: JULIAN ONYNYECHI NNADIKE
+    country: str = "NIGERIA"
+    year_of_birth: Optional[str] = 1985
+    phone: 632862801
+    email: NNAAFEEL@GMAIL.COM
     offices: Optional[list] = field(default_factory=list)
-    except_offices: Optional[list] = field(default_factory=list)
-    reason_or_type: str = "solicitud de asilo"
+    except_offices:POLICIA - RECOGIDA DE TARJETA DE IDENTIDAD DE EXTRANJERO (TIE)
+- POLICIA-AUTORIZACIÓN DE REGRESO
+- POLICIA-CARTA DE INVITACIÓN
+- POLICIA-CERTIFICADO DE REGISTRO DE CIUDADANO DE LA U.E.
+- POLICIA-CERTIFICADOS (DE RESIDENCIA, DE NO RESIDENCIA Y DE CONCORDANCIA)
+- POLICIA-CERTIFICADOS Y ASIGNACION NIE
+- POLICIA-CERTIFICADOS Y ASIGNACION NIE (NO COMUNITARIOS)POLICÍA-EXP.TARJETA ASOCIADA AL ACUERDO DE RETIRADA CIUDADANOS BRITÁNICOS Y SUS FAMILIARES (BREXIT) Optional[list] = POLICIA TOMA DE HUELLAS (EXPEDICIÓN DE TARJETA) Y RENOVACIÓN DE TARJETA DE LARGA DURACIÓN field(default_factory=list)
+    reason_or_type: str = "toma de huellas comunitario"
 ```
 
 * `anticaptcha_api_key` — Anti-captcha.com API key (not required if `auto_captcha=False`)
