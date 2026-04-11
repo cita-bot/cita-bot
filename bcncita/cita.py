@@ -286,10 +286,16 @@ def start_with(driver: webdriver, context: CustomerProfile, cycles: int = CYCLES
             result = cycle_cita(driver, context, fast_forward_url, fast_forward_url2)
         except KeyboardInterrupt:
             raise
+            print(f"Wait 5 minutes after Cycle {i+1}", cycles)
+            time.sleep(300) # Wait 5 minutes (5*60 sec) within each retry or else your IP will be bloked.
         except TimeoutException:
             logging.error("Timeout exception")
+            print(f"Wait 5 minutes after Cycle {i+1}", cycles)
+            time.sleep(300) # Wait 5 minutes, same
         except Exception as e:
             logging.error(f"SMTH BROKEN: {e}")
+            print(f"Wait 5 minutes after Cycle {i+1}", cycles)
+            time.sleep(300) # Wait 5 minutes, same.
             continue
 
         if result:
@@ -691,6 +697,9 @@ def office_selection(driver: webdriver, context: CustomerProfile):
             continue
         else:
             logging.info("[Step 2/6] Office selection -> No offices")
+            sleeping_time = random.randint(5,20)
+            print('Wait {} sec'.format(sleeping_time))
+            time.sleep(sleeping_time) # Wait "sleeping_time" seconds between cycles if no office found or else will be temporarily blocked (for ~5m)
             return None
 
 
