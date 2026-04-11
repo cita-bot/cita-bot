@@ -35,7 +35,7 @@ Other provinces are also supported if you leave `offices` empty and that way try
 Installation TL;DR
 -------------------
 
-1. Install [Python 3.8](https://www.python.org/downloads/release/python-385/).
+1. Install [Python 3.10](https://www.python.org/downloads/release/python-3100/).
 
 2. `pip install -r requirements.txt`
 
